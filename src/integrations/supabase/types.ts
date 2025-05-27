@@ -9,16 +9,220 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      admin_users: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          role: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id: string
+          name: string
+          role?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          role?: string | null
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          budget: string | null
+          company: string | null
+          created_at: string | null
+          email: string
+          id: string
+          message: string
+          name: string
+          phone: string | null
+          priority: string | null
+          status: Database["public"]["Enums"]["contact_status"] | null
+          subject: string
+          timeline: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          budget?: string | null
+          company?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          message: string
+          name: string
+          phone?: string | null
+          priority?: string | null
+          status?: Database["public"]["Enums"]["contact_status"] | null
+          subject: string
+          timeline?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          budget?: string | null
+          company?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          phone?: string | null
+          priority?: string | null
+          status?: Database["public"]["Enums"]["contact_status"] | null
+          subject?: string
+          timeline?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      estimates: {
+        Row: {
+          budget: string | null
+          company: string | null
+          created_at: string | null
+          description: string | null
+          email: string
+          estimated_cost_max: number
+          estimated_cost_min: number
+          features: string[] | null
+          id: string
+          name: string
+          project_type: Database["public"]["Enums"]["project_type"]
+          status: Database["public"]["Enums"]["estimate_status"] | null
+          timeline: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          budget?: string | null
+          company?: string | null
+          created_at?: string | null
+          description?: string | null
+          email: string
+          estimated_cost_max: number
+          estimated_cost_min: number
+          features?: string[] | null
+          id?: string
+          name: string
+          project_type: Database["public"]["Enums"]["project_type"]
+          status?: Database["public"]["Enums"]["estimate_status"] | null
+          timeline?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          budget?: string | null
+          company?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string
+          estimated_cost_max?: number
+          estimated_cost_min?: number
+          features?: string[] | null
+          id?: string
+          name?: string
+          project_type?: Database["public"]["Enums"]["project_type"]
+          status?: Database["public"]["Enums"]["estimate_status"] | null
+          timeline?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      quotations: {
+        Row: {
+          amount: number
+          contact_id: string | null
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          estimate_id: string | null
+          id: string
+          quote_number: string
+          status: string | null
+          title: string
+          updated_at: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          amount: number
+          contact_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          estimate_id?: string | null
+          id?: string
+          quote_number: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          amount?: number
+          contact_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          estimate_id?: string | null
+          id?: string
+          quote_number?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotations_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_estimate_id_fkey"
+            columns: ["estimate_id"]
+            isOneToOne: false
+            referencedRelation: "estimates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_quote_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      contact_status:
+        | "new"
+        | "contacted"
+        | "quoted"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+      estimate_status:
+        | "pending"
+        | "reviewed"
+        | "quoted"
+        | "accepted"
+        | "rejected"
+      project_type:
+        | "website"
+        | "webapp"
+        | "mobile"
+        | "fullstack"
+        | "ecommerce"
+        | "api"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +337,30 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      contact_status: [
+        "new",
+        "contacted",
+        "quoted",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ],
+      estimate_status: [
+        "pending",
+        "reviewed",
+        "quoted",
+        "accepted",
+        "rejected",
+      ],
+      project_type: [
+        "website",
+        "webapp",
+        "mobile",
+        "fullstack",
+        "ecommerce",
+        "api",
+      ],
+    },
   },
 } as const
