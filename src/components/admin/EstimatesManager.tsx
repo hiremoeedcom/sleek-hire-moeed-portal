@@ -8,19 +8,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { DollarSign, Clock, Code, Mail } from 'lucide-react';
 
+type EstimateStatus = 'pending' | 'reviewed' | 'quoted' | 'accepted' | 'rejected';
+type ProjectType = 'website' | 'webapp' | 'mobile' | 'fullstack' | 'ecommerce' | 'api';
+
 interface Estimate {
   id: string;
   name: string;
   email: string;
   company?: string;
-  project_type: string;
+  project_type: ProjectType;
   budget?: string;
   timeline?: string;
   features: string[];
   description?: string;
   estimated_cost_min: number;
   estimated_cost_max: number;
-  status: string;
+  status: EstimateStatus;
   created_at: string;
 }
 
@@ -53,7 +56,7 @@ const EstimatesManager = () => {
     }
   };
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, status: EstimateStatus) => {
     try {
       const { error } = await supabase
         .from('estimates')
@@ -79,7 +82,7 @@ const EstimatesManager = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: EstimateStatus) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'reviewed': return 'bg-blue-100 text-blue-800';
@@ -114,7 +117,7 @@ const EstimatesManager = () => {
                   </Badge>
                   <Select
                     value={estimate.status}
-                    onValueChange={(value) => updateStatus(estimate.id, value)}
+                    onValueChange={(value: EstimateStatus) => updateStatus(estimate.id, value)}
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue />

@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Phone, Building2, Calendar, MessageSquare } from 'lucide-react';
 
+type ContactStatus = 'new' | 'contacted' | 'quoted' | 'in_progress' | 'completed' | 'cancelled';
+
 interface Contact {
   id: string;
   name: string;
@@ -16,7 +18,7 @@ interface Contact {
   phone?: string;
   subject: string;
   message: string;
-  status: string;
+  status: ContactStatus;
   created_at: string;
   budget?: string;
   timeline?: string;
@@ -51,7 +53,7 @@ const ContactsManager = () => {
     }
   };
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, status: ContactStatus) => {
     try {
       const { error } = await supabase
         .from('contacts')
@@ -77,7 +79,7 @@ const ContactsManager = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: ContactStatus) => {
     switch (status) {
       case 'new': return 'bg-blue-100 text-blue-800';
       case 'contacted': return 'bg-yellow-100 text-yellow-800';
@@ -113,7 +115,7 @@ const ContactsManager = () => {
                   </Badge>
                   <Select
                     value={contact.status}
-                    onValueChange={(value) => updateStatus(contact.id, value)}
+                    onValueChange={(value: ContactStatus) => updateStatus(contact.id, value)}
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue />

@@ -11,12 +11,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Calculator, CheckCircle } from 'lucide-react';
 
+type ProjectType = 'website' | 'webapp' | 'mobile' | 'fullstack' | 'ecommerce' | 'api';
+
 const EstimateForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     company: '',
-    project_type: '',
+    project_type: '' as ProjectType,
     budget: '',
     timeline: '',
     features: [] as string[],
@@ -90,11 +92,18 @@ const EstimateForm = () => {
 
       const { error } = await supabase
         .from('estimates')
-        .insert([{
-          ...formData,
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          company: formData.company,
+          project_type: formData.project_type,
+          budget: formData.budget,
+          timeline: formData.timeline,
+          features: formData.features,
+          description: formData.description,
           estimated_cost_min: minCost,
           estimated_cost_max: maxCost,
-        }]);
+        });
 
       if (error) throw error;
 
@@ -108,7 +117,7 @@ const EstimateForm = () => {
         name: '',
         email: '',
         company: '',
-        project_type: '',
+        project_type: '' as ProjectType,
         budget: '',
         timeline: '',
         features: [],
@@ -126,7 +135,11 @@ const EstimateForm = () => {
   };
 
   const handleChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'project_type') {
+      setFormData(prev => ({ ...prev, [name]: value as ProjectType }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleFeatureChange = (feature: string, checked: boolean) => {
