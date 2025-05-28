@@ -7,11 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface LoginFormProps {
-  onSuccess: () => void;
-}
-
-const LoginForm = ({ onSuccess }: LoginFormProps) => {
+const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,19 +18,23 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
+      console.log('Login successful:', data);
+      
       toast({
         title: "Success",
         description: "Logged in successfully",
       });
-      onSuccess();
+      
+      // The useAuth hook will handle the redirect automatically
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Login failed",
@@ -62,6 +62,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@hiremoeed.com"
               required
             />
           </div>
@@ -72,6 +73,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
               required
             />
           </div>
@@ -79,6 +81,13 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
             {loading ? "Signing in..." : "Sign In"}
           </Button>
         </form>
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-700">
+            <strong>Demo Credentials:</strong><br />
+            Email: admin@hiremoeed.com<br />
+            Password: AdminPass123!
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
