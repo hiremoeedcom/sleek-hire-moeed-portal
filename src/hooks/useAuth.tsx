@@ -26,8 +26,8 @@ export const useAuth = () => {
           await checkAdminStatus(session.user.id);
         } else {
           setIsAdmin(false);
+          setLoading(false);
         }
-        setLoading(false);
       } catch (error) {
         console.error('Error in getInitialSession:', error);
         setLoading(false);
@@ -47,9 +47,8 @@ export const useAuth = () => {
         await checkAdminStatus(session.user.id);
       } else {
         setIsAdmin(false);
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -70,15 +69,18 @@ export const useAuth = () => {
       if (error) {
         console.error('Error checking admin status:', error);
         setIsAdmin(false);
+        setLoading(false);
         return;
       }
 
       const isAdminUser = !!data;
       console.log('Is admin user:', isAdminUser);
       setIsAdmin(isAdminUser);
+      setLoading(false);
     } catch (error) {
       console.error('Exception in checkAdminStatus:', error);
       setIsAdmin(false);
+      setLoading(false);
     }
   };
 

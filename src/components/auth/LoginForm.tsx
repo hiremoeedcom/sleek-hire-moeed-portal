@@ -72,7 +72,7 @@ const LoginForm = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@hiremoeed.com"
+              placeholder="Enter your email"
               required
               disabled={loading}
             />
@@ -93,13 +93,6 @@ const LoginForm = () => {
             {loading ? "Signing in..." : "Sign In"}
           </Button>
         </form>
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-          <p className="text-sm text-blue-700">
-            <strong>Demo Credentials:</strong><br />
-            Email: admin@hiremoeed.com<br />
-            Password: AdminPass123!
-          </p>
-        </div>
       </CardContent>
     </Card>
   );
