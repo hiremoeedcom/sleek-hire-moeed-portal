@@ -18,12 +18,22 @@ const LoginForm = () => {
     setLoading(true);
 
     try {
+      console.log('Attempting login with email:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Login error:', error);
+        toast({
+          title: "Login Failed",
+          description: error.message || "Invalid credentials",
+          variant: "destructive",
+        });
+        return;
+      }
 
       console.log('Login successful:', data);
       
@@ -34,10 +44,10 @@ const LoginForm = () => {
       
       // The useAuth hook will handle the redirect automatically
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login exception:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Login failed",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
@@ -64,6 +74,7 @@ const LoginForm = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@hiremoeed.com"
               required
+              disabled={loading}
             />
           </div>
           <div className="space-y-2">
@@ -75,6 +86,7 @@ const LoginForm = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
+              disabled={loading}
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>

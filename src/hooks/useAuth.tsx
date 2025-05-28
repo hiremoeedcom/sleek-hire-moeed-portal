@@ -27,9 +27,9 @@ export const useAuth = () => {
         } else {
           setIsAdmin(false);
         }
+        setLoading(false);
       } catch (error) {
         console.error('Error in getInitialSession:', error);
-      } finally {
         setLoading(false);
       }
     };
