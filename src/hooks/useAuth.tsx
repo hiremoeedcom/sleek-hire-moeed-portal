@@ -15,16 +15,20 @@ export const useAuth = () => {
     // Get initial session
     const getInitialSession = async () => {
       try {
+        logger.debug('Getting initial session...');
         const { data: { session }, error } = await supabase.auth.getSession();
+        
         if (error) {
           logger.error('Error getting session', error);
           if (mounted) {
+            setUser(null);
+            setIsAdmin(false);
             setLoading(false);
           }
           return;
         }
         
-        logger.debug('Initial session retrieved', { hasSession: !!session });
+        logger.debug('Initial session retrieved', { hasSession: !!session, userId: session?.user?.id });
         
         if (mounted) {
           setUser(session?.user ?? null);
@@ -32,6 +36,7 @@ export const useAuth = () => {
           if (session?.user) {
             await checkAdminStatus(session.user.id);
           } else {
+            logger.debug('No user session, setting loading to false');
             setIsAdmin(false);
             setLoading(false);
           }
@@ -39,6 +44,8 @@ export const useAuth = () => {
       } catch (error) {
         logger.error('Exception in getInitialSession', error);
         if (mounted) {
+          setUser(null);
+          setIsAdmin(false);
           setLoading(false);
         }
       }
@@ -50,7 +57,7 @@ export const useAuth = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      logger.debug('Auth state changed', { event, hasSession: !!session });
+      logger.debug('Auth state changed', { event, hasSession: !!session, userId: session?.user?.id });
       
       if (mounted) {
         setUser(session?.user ?? null);
@@ -58,6 +65,7 @@ export const useAuth = () => {
         if (session?.user) {
           await checkAdminStatus(session.user.id);
         } else {
+          logger.debug('No user in auth state change, setting loading to false');
           setIsAdmin(false);
           setLoading(false);
         }
@@ -72,7 +80,7 @@ export const useAuth = () => {
 
   const checkAdminStatus = async (userId: string) => {
     try {
-      logger.debug('Checking admin status', { userId });
+      logger.debug('Checking admin status for user:', userId);
       
       const { data, error } = await supabase
         .from('admin_users')
@@ -81,14 +89,14 @@ export const useAuth = () => {
         .maybeSingle();
 
       if (error) {
-        logger.error('Error checking admin status', error);
+        logger.error('Error checking admin status:', error);
         setIsAdmin(false);
         setLoading(false);
         return;
       }
 
       const isAdminUser = !!data;
-      logger.debug('Admin status check complete', { isAdminUser, data });
+      logger.debug('Admin status check complete', { isAdminUser, data, userId });
       setIsAdmin(isAdminUser);
       setLoading(false);
     } catch (error) {
@@ -100,6 +108,7 @@ export const useAuth = () => {
 
   const signOut = async () => {
     try {
+      logger.debug('Signing out user...');
       const { error } = await supabase.auth.signOut();
       if (error) {
         logger.error('Error signing out', error);
