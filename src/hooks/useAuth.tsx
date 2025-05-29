@@ -10,28 +10,37 @@ export const useAuth = () => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           logger.error('Error getting session', error);
-          setLoading(false);
+          if (mounted) {
+            setLoading(false);
+          }
           return;
         }
         
         logger.debug('Initial session retrieved', { hasSession: !!session });
-        setUser(session?.user ?? null);
         
-        if (session?.user) {
-          await checkAdminStatus(session.user.id);
-        } else {
-          setIsAdmin(false);
-          setLoading(false);
+        if (mounted) {
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            await checkAdminStatus(session.user.id);
+          } else {
+            setIsAdmin(false);
+            setLoading(false);
+          }
         }
       } catch (error) {
         logger.error('Exception in getInitialSession', error);
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -42,17 +51,23 @@ export const useAuth = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       logger.debug('Auth state changed', { event, hasSession: !!session });
-      setUser(session?.user ?? null);
       
-      if (session?.user) {
-        await checkAdminStatus(session.user.id);
-      } else {
-        setIsAdmin(false);
-        setLoading(false);
+      if (mounted) {
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await checkAdminStatus(session.user.id);
+        } else {
+          setIsAdmin(false);
+          setLoading(false);
+        }
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const checkAdminStatus = async (userId: string) => {
@@ -73,7 +88,7 @@ export const useAuth = () => {
       }
 
       const isAdminUser = !!data;
-      logger.debug('Admin status check complete', { isAdminUser });
+      logger.debug('Admin status check complete', { isAdminUser, data });
       setIsAdmin(isAdminUser);
       setLoading(false);
     } catch (error) {

@@ -68,15 +68,13 @@ const LoginForm = () => {
 
       logger.info('Login successful');
       
-      toast({
-        title: "Success",
-        description: "Logged in successfully",
-      });
-      
       // Clear form for security
       setEmail('');
       setPassword('');
       setValidationErrors({});
+      
+      // Don't show success toast - let the redirect happen naturally
+      // The auth state change will be detected by the parent component
       
     } catch (error) {
       logger.error('Login exception', error);
