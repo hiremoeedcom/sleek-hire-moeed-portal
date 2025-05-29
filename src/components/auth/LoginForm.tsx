@@ -6,48 +6,83 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { validateEmail, validatePassword, sanitizeInput } from '@/utils/validation';
+import { logger } from '@/utils/logger';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
   const { toast } = useToast();
+
+  const validateForm = () => {
+    const errors: {[key: string]: string} = {};
+    
+    const sanitizedEmail = sanitizeInput(email);
+    if (!validateEmail(sanitizedEmail)) {
+      errors.email = 'Please enter a valid email address';
+    }
+    
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      errors.password = passwordValidation.message || 'Invalid password';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please check your input and try again",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      console.log('Attempting login with email:', email);
+      const sanitizedEmail = sanitizeInput(email);
+      logger.info('Attempting login', { email: sanitizedEmail });
       
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: sanitizedEmail,
         password,
       });
 
       if (error) {
-        console.error('Login error:', error);
+        logger.warn('Login failed', { error: error.message });
         toast({
           title: "Login Failed",
-          description: error.message || "Invalid credentials",
+          description: "Invalid email or password. Please try again.",
           variant: "destructive",
         });
         return;
       }
 
-      console.log('Login successful:', data);
+      logger.info('Login successful');
       
       toast({
         title: "Success",
         description: "Logged in successfully",
       });
       
-      // The useAuth hook will handle the redirect automatically
+      // Clear form for security
+      setEmail('');
+      setPassword('');
+      setValidationErrors({});
+      
     } catch (error) {
-      console.error('Login exception:', error);
+      logger.error('Login exception', error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -71,11 +106,20 @@ const LoginForm = () => {
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (validationErrors.email) {
+                  setValidationErrors(prev => ({...prev, email: ''}));
+                }
+              }}
               placeholder="Enter your email"
               required
               disabled={loading}
+              autoComplete="email"
             />
+            {validationErrors.email && (
+              <p className="text-sm text-red-600">{validationErrors.email}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -83,11 +127,20 @@ const LoginForm = () => {
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (validationErrors.password) {
+                  setValidationErrors(prev => ({...prev, password: ''}));
+                }
+              }}
               placeholder="Enter your password"
               required
               disabled={loading}
+              autoComplete="current-password"
             />
+            {validationErrors.password && (
+              <p className="text-sm text-red-600">{validationErrors.password}</p>
+            )}
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Signing in..." : "Sign In"}

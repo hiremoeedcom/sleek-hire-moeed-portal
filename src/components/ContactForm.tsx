@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Send, User, Mail, Building2, MessageSquare } from 'lucide-react';
+import { validateEmail, sanitizeInput, validateRequired, validateLength } from '@/utils/validation';
+import { logger } from '@/utils/logger';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -23,18 +24,79 @@ const ContactForm = () => {
     timeline: '',
   });
   const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
   const { toast } = useToast();
+
+  const validateForm = () => {
+    const errors: {[key: string]: string} = {};
+    
+    // Required field validations
+    const nameError = validateRequired(formData.name, 'Name');
+    if (nameError) errors.name = nameError;
+    
+    const emailError = validateRequired(formData.email, 'Email');
+    if (emailError) errors.email = emailError;
+    else if (!validateEmail(formData.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+    
+    const subjectError = validateRequired(formData.subject, 'Subject');
+    if (subjectError) errors.subject = subjectError;
+    
+    const messageError = validateRequired(formData.message, 'Message');
+    if (messageError) errors.message = messageError;
+    
+    // Length validations
+    const nameLengthError = validateLength(formData.name, 2, 100, 'Name');
+    if (nameLengthError) errors.name = nameLengthError;
+    
+    const subjectLengthError = validateLength(formData.subject, 5, 200, 'Subject');
+    if (subjectLengthError) errors.subject = subjectLengthError;
+    
+    const messageLengthError = validateLength(formData.message, 10, 2000, 'Message');
+    if (messageLengthError) errors.message = messageLengthError;
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please check your input and try again",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
+      // Sanitize all input data
+      const sanitizedData = {
+        name: sanitizeInput(formData.name),
+        email: sanitizeInput(formData.email),
+        company: sanitizeInput(formData.company),
+        phone: sanitizeInput(formData.phone),
+        subject: sanitizeInput(formData.subject),
+        message: sanitizeInput(formData.message),
+        priority: formData.priority,
+        budget: formData.budget,
+        timeline: formData.timeline,
+      };
+
+      logger.info('Submitting contact form');
+
       const { error } = await supabase
         .from('contacts')
-        .insert([formData]);
+        .insert([sanitizedData]);
 
       if (error) throw error;
+
+      logger.info('Contact form submitted successfully');
 
       toast({
         title: "Message Sent!",
@@ -53,7 +115,9 @@ const ContactForm = () => {
         budget: '',
         timeline: '',
       });
+      setValidationErrors({});
     } catch (error) {
+      logger.error('Contact form submission failed', error);
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
@@ -66,6 +130,10 @@ const ContactForm = () => {
 
   const handleChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear validation error for this field
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   return (
@@ -88,8 +156,14 @@ const ContactForm = () => {
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
+                placeholder="Your full name"
                 required
+                disabled={loading}
+                maxLength={100}
               />
+              {validationErrors.name && (
+                <p className="text-sm text-red-600">{validationErrors.name}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
@@ -101,8 +175,14 @@ const ContactForm = () => {
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
+                placeholder="your@email.com"
                 required
+                disabled={loading}
+                maxLength={255}
               />
+              {validationErrors.email && (
+                <p className="text-sm text-red-600">{validationErrors.email}</p>
+              )}
             </div>
           </div>
 
@@ -116,6 +196,9 @@ const ContactForm = () => {
                 id="company"
                 value={formData.company}
                 onChange={(e) => handleChange('company', e.target.value)}
+                placeholder="Your company name"
+                disabled={loading}
+                maxLength={100}
               />
             </div>
             <div className="space-y-2">
@@ -125,6 +208,9 @@ const ContactForm = () => {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => handleChange('phone', e.target.value)}
+                placeholder="Your phone number"
+                disabled={loading}
+                maxLength={20}
               />
             </div>
           </div>
@@ -135,8 +221,14 @@ const ContactForm = () => {
               id="subject"
               value={formData.subject}
               onChange={(e) => handleChange('subject', e.target.value)}
+              placeholder="Brief subject line"
               required
+              disabled={loading}
+              maxLength={200}
             />
+            {validationErrors.subject && (
+              <p className="text-sm text-red-600">{validationErrors.subject}</p>
+            )}
           </div>
 
           <div className="grid md:grid-cols-3 gap-4">
@@ -194,7 +286,12 @@ const ContactForm = () => {
               rows={5}
               placeholder="Tell us about your project requirements..."
               required
+              disabled={loading}
+              maxLength={2000}
             />
+            {validationErrors.message && (
+              <p className="text-sm text-red-600">{validationErrors.message}</p>
+            )}
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>

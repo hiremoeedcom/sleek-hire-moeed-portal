@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import { logger } from '@/utils/logger';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -14,12 +15,12 @@ export const useAuth = () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          console.error('Error getting session:', error);
+          logger.error('Error getting session', error);
           setLoading(false);
           return;
         }
         
-        console.log('Initial session:', session);
+        logger.debug('Initial session retrieved', { hasSession: !!session });
         setUser(session?.user ?? null);
         
         if (session?.user) {
@@ -29,7 +30,7 @@ export const useAuth = () => {
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error in getInitialSession:', error);
+        logger.error('Exception in getInitialSession', error);
         setLoading(false);
       }
     };
@@ -40,7 +41,7 @@ export const useAuth = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session);
+      logger.debug('Auth state changed', { event, hasSession: !!session });
       setUser(session?.user ?? null);
       
       if (session?.user) {
@@ -56,7 +57,7 @@ export const useAuth = () => {
 
   const checkAdminStatus = async (userId: string) => {
     try {
-      console.log('Checking admin status for user:', userId);
+      logger.debug('Checking admin status', { userId });
       
       const { data, error } = await supabase
         .from('admin_users')
@@ -64,21 +65,19 @@ export const useAuth = () => {
         .eq('id', userId)
         .maybeSingle();
 
-      console.log('Admin check result:', { data, error });
-
       if (error) {
-        console.error('Error checking admin status:', error);
+        logger.error('Error checking admin status', error);
         setIsAdmin(false);
         setLoading(false);
         return;
       }
 
       const isAdminUser = !!data;
-      console.log('Is admin user:', isAdminUser);
+      logger.debug('Admin status check complete', { isAdminUser });
       setIsAdmin(isAdminUser);
       setLoading(false);
     } catch (error) {
-      console.error('Exception in checkAdminStatus:', error);
+      logger.error('Exception in checkAdminStatus', error);
       setIsAdmin(false);
       setLoading(false);
     }
@@ -88,10 +87,12 @@ export const useAuth = () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('Error signing out:', error);
+        logger.error('Error signing out', error);
+      } else {
+        logger.info('User signed out successfully');
       }
     } catch (error) {
-      console.error('Exception during sign out:', error);
+      logger.error('Exception during sign out', error);
     }
   };
 
