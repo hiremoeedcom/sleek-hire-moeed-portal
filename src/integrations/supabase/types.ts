@@ -11,183 +11,241 @@ export type Database = {
     Tables: {
       admin_users: {
         Row: {
-          created_at: string | null
+          created_at: string
           email: string
           id: string
+          is_active: boolean
+          last_login: string | null
           name: string
-          role: string | null
+          password_hash: string
+          role: string
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           email: string
-          id: string
+          id?: string
+          is_active?: boolean
+          last_login?: string | null
           name: string
-          role?: string | null
+          password_hash: string
+          role?: string
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           email?: string
           id?: string
+          is_active?: boolean
+          last_login?: string | null
           name?: string
-          role?: string | null
+          password_hash?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      analytics: {
+        Row: {
+          created_at: string
+          data: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          page_url: string | null
+          session_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          page_url?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          page_url?: string | null
+          session_id?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }
       contacts: {
         Row: {
-          budget: string | null
+          assigned_to: string | null
           company: string | null
-          created_at: string | null
+          created_at: string
           email: string
           id: string
           message: string
           name: string
+          notes: string | null
           phone: string | null
           priority: string | null
-          status: Database["public"]["Enums"]["contact_status"] | null
+          status: string
           subject: string
-          timeline: string | null
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
-          budget?: string | null
+          assigned_to?: string | null
           company?: string | null
-          created_at?: string | null
+          created_at?: string
           email: string
           id?: string
           message: string
           name: string
+          notes?: string | null
           phone?: string | null
           priority?: string | null
-          status?: Database["public"]["Enums"]["contact_status"] | null
+          status?: string
           subject: string
-          timeline?: string | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
-          budget?: string | null
+          assigned_to?: string | null
           company?: string | null
-          created_at?: string | null
+          created_at?: string
           email?: string
           id?: string
           message?: string
           name?: string
+          notes?: string | null
           phone?: string | null
           priority?: string | null
-          status?: Database["public"]["Enums"]["contact_status"] | null
+          status?: string
           subject?: string
-          timeline?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      estimates: {
-        Row: {
-          budget: string | null
-          company: string | null
-          created_at: string | null
-          description: string | null
-          email: string
-          estimated_cost_max: number
-          estimated_cost_min: number
-          features: string[] | null
-          id: string
-          name: string
-          project_type: Database["public"]["Enums"]["project_type"]
-          status: Database["public"]["Enums"]["estimate_status"] | null
-          timeline: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          budget?: string | null
-          company?: string | null
-          created_at?: string | null
-          description?: string | null
-          email: string
-          estimated_cost_max: number
-          estimated_cost_min: number
-          features?: string[] | null
-          id?: string
-          name: string
-          project_type: Database["public"]["Enums"]["project_type"]
-          status?: Database["public"]["Enums"]["estimate_status"] | null
-          timeline?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          budget?: string | null
-          company?: string | null
-          created_at?: string | null
-          description?: string | null
-          email?: string
-          estimated_cost_max?: number
-          estimated_cost_min?: number
-          features?: string[] | null
-          id?: string
-          name?: string
-          project_type?: Database["public"]["Enums"]["project_type"]
-          status?: Database["public"]["Enums"]["estimate_status"] | null
-          timeline?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      quotations: {
-        Row: {
-          amount: number
-          contact_id: string | null
-          created_at: string | null
-          currency: string | null
-          description: string | null
-          estimate_id: string | null
-          id: string
-          quote_number: string
-          status: string | null
-          title: string
-          updated_at: string | null
-          valid_until: string | null
-        }
-        Insert: {
-          amount: number
-          contact_id?: string | null
-          created_at?: string | null
-          currency?: string | null
-          description?: string | null
-          estimate_id?: string | null
-          id?: string
-          quote_number: string
-          status?: string | null
-          title: string
-          updated_at?: string | null
-          valid_until?: string | null
-        }
-        Update: {
-          amount?: number
-          contact_id?: string | null
-          created_at?: string | null
-          currency?: string | null
-          description?: string | null
-          estimate_id?: string | null
-          id?: string
-          quote_number?: string
-          status?: string | null
-          title?: string
-          updated_at?: string | null
-          valid_until?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "quotations_contact_id_fkey"
-            columns: ["contact_id"]
+            foreignKeyName: "contacts_assigned_to_fkey"
+            columns: ["assigned_to"]
             isOneToOne: false
-            referencedRelation: "contacts"
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          assigned_to: string | null
+          budget: number | null
+          client_email: string
+          client_name: string
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          priority: string | null
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          budget?: number | null
+          client_email: string
+          client_name: string
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          priority?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          budget?: number | null
+          client_email?: string
+          client_name?: string
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          priority?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          actual_hours: number | null
+          assigned_to: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          estimated_hours: number | null
+          id: string
+          priority: string | null
+          project_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          priority?: string | null
+          project_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_hours?: number | null
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          priority?: string | null
+          project_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "quotations_estimate_id_fkey"
-            columns: ["estimate_id"]
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "estimates"
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -197,25 +255,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_quote_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      [_ in never]: never
     }
     Enums: {
-      contact_status:
-        | "new"
-        | "contacted"
-        | "quoted"
-        | "in_progress"
-        | "completed"
-        | "cancelled"
-      estimate_status:
-        | "pending"
-        | "reviewed"
-        | "quoted"
-        | "accepted"
-        | "rejected"
       project_type:
         | "website"
         | "webapp"
@@ -338,21 +380,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      contact_status: [
-        "new",
-        "contacted",
-        "quoted",
-        "in_progress",
-        "completed",
-        "cancelled",
-      ],
-      estimate_status: [
-        "pending",
-        "reviewed",
-        "quoted",
-        "accepted",
-        "rejected",
-      ],
       project_type: [
         "website",
         "webapp",

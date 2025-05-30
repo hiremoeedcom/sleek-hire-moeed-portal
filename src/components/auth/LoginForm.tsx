@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { validateEmail, validatePassword, sanitizeInput } from '@/utils/validation';
+import { validateEmail, sanitizeInput } from '@/utils/validation';
 import { logger } from '@/utils/logger';
 
 const LoginForm = () => {
@@ -14,6 +14,7 @@ const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+  const { signIn } = useAuth();
   const { toast } = useToast();
 
   const validateForm = () => {
@@ -24,9 +25,8 @@ const LoginForm = () => {
       errors.email = 'Please enter a valid email address';
     }
     
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.isValid) {
-      errors.password = passwordValidation.message || 'Invalid password';
+    if (!password || password.length < 3) {
+      errors.password = 'Password is required';
     }
     
     setValidationErrors(errors);
@@ -49,32 +49,30 @@ const LoginForm = () => {
 
     try {
       const sanitizedEmail = sanitizeInput(email);
-      logger.info('Attempting login', { email: sanitizedEmail });
+      logger.info('Attempting admin login', { email: sanitizedEmail });
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: sanitizedEmail,
-        password,
-      });
+      const result = await signIn(sanitizedEmail, password);
 
-      if (error) {
-        logger.warn('Login failed', { error: error.message });
+      if (!result.success) {
         toast({
           title: "Login Failed",
-          description: "Invalid email or password. Please try again.",
+          description: result.error || "Invalid email or password. Please try again.",
           variant: "destructive",
         });
         return;
       }
 
-      logger.info('Login successful');
+      logger.info('Admin login successful');
       
       // Clear form for security
       setEmail('');
       setPassword('');
       setValidationErrors({});
       
-      // Don't show success toast - let the redirect happen naturally
-      // The auth state change will be detected by the parent component
+      toast({
+        title: "Success",
+        description: "Welcome to the admin dashboard!",
+      });
       
     } catch (error) {
       logger.error('Login exception', error);
@@ -95,6 +93,11 @@ const LoginForm = () => {
         <CardDescription>
           Enter your credentials to access the admin dashboard
         </CardDescription>
+        <div className="mt-4 p-3 bg-gray-50 rounded-md">
+          <p className="text-sm text-gray-600 font-medium">Demo Credentials:</p>
+          <p className="text-sm text-gray-600">Email: admin@company.com</p>
+          <p className="text-sm text-gray-600">Password: Admin123!</p>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleLogin} className="space-y-4">

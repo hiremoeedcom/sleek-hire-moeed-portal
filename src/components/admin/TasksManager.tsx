@@ -6,51 +6,58 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
-import { Plus, Mail, Phone, Building, User, Calendar, AlertCircle } from 'lucide-react';
+import { Plus, CheckSquare, Clock, Calendar, FolderOpen } from 'lucide-react';
 
-interface Contact {
+interface Task {
   id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  company?: string;
-  subject: string;
-  message: string;
+  title: string;
+  description?: string;
   status: string;
   priority: string;
+  due_date?: string;
+  estimated_hours?: number;
+  actual_hours?: number;
   created_at: string;
-  notes?: string;
+  project_id?: string;
+  projects?: {
+    name: string;
+  };
 }
 
-const ContactsManager = () => {
-  const [contacts, setContacts] = useState<Contact[]>([]);
+const TasksManager = () => {
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchContacts();
+    fetchTasks();
   }, []);
 
-  const fetchContacts = async () => {
+  const fetchTasks = async () => {
     try {
       const { data, error } = await supabase
-        .from('contacts')
-        .select('*')
+        .from('tasks')
+        .select(`
+          *,
+          projects (
+            name
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
-        logger.error('Error fetching contacts:', error);
+        logger.error('Error fetching tasks:', error);
         toast({
           title: "Error",
-          description: "Failed to load contacts",
+          description: "Failed to load tasks",
           variant: "destructive",
         });
         return;
       }
 
-      setContacts(data || []);
+      setTasks(data || []);
     } catch (error) {
-      logger.error('Exception fetching contacts:', error);
+      logger.error('Exception fetching tasks:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -61,46 +68,46 @@ const ContactsManager = () => {
     }
   };
 
-  const updateContactStatus = async (contactId: string, newStatus: string) => {
+  const updateTaskStatus = async (taskId: string, newStatus: string) => {
     try {
       const { error } = await supabase
-        .from('contacts')
+        .from('tasks')
         .update({ status: newStatus })
-        .eq('id', contactId);
+        .eq('id', taskId);
 
       if (error) {
-        logger.error('Error updating contact status:', error);
+        logger.error('Error updating task status:', error);
         toast({
           title: "Error",
-          description: "Failed to update contact status",
+          description: "Failed to update task status",
           variant: "destructive",
         });
         return;
       }
 
-      setContacts(prev => 
-        prev.map(contact => 
-          contact.id === contactId 
-            ? { ...contact, status: newStatus }
-            : contact
+      setTasks(prev => 
+        prev.map(task => 
+          task.id === taskId 
+            ? { ...task, status: newStatus }
+            : task
         )
       );
 
       toast({
         title: "Success",
-        description: "Contact status updated successfully",
+        description: "Task status updated successfully",
       });
     } catch (error) {
-      logger.error('Exception updating contact status:', error);
+      logger.error('Exception updating task status:', error);
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new': return 'bg-blue-100 text-blue-800';
-      case 'contacted': return 'bg-yellow-100 text-yellow-800';
-      case 'qualified': return 'bg-green-100 text-green-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'blocked': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -118,7 +125,7 @@ const ContactsManager = () => {
     return (
       <Card>
         <CardContent className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading contacts...</div>
+          <div className="text-lg">Loading tasks...</div>
         </CardContent>
       </Card>
     );
@@ -128,102 +135,98 @@ const ContactsManager = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Contacts</h2>
-          <p className="text-gray-600">Manage website inquiries and leads</p>
+          <h2 className="text-2xl font-bold">Tasks</h2>
+          <p className="text-gray-600">Manage your tasks and track progress</p>
         </div>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Add Contact
+          Add Task
         </Button>
       </div>
 
-      {contacts.length === 0 ? (
+      {tasks.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center h-64">
-            <Mail className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No contacts yet</h3>
+            <CheckSquare className="h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No tasks yet</h3>
             <p className="text-gray-600 text-center">
-              Contacts from your website forms will appear here
+              Create your first task to start tracking your work
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {contacts.map((contact) => (
-            <Card key={contact.id}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {tasks.map((task) => (
+            <Card key={task.id}>
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      {contact.name}
+                      <CheckSquare className="h-4 w-4" />
+                      {task.title}
                     </CardTitle>
-                    <CardDescription>{contact.subject}</CardDescription>
+                    {task.projects && (
+                      <CardDescription className="flex items-center gap-1">
+                        <FolderOpen className="h-3 w-3" />
+                        {task.projects.name}
+                      </CardDescription>
+                    )}
                   </div>
                   <div className="flex gap-2">
-                    <Badge className={getPriorityColor(contact.priority)}>
-                      {contact.priority}
+                    <Badge className={getPriorityColor(task.priority)}>
+                      {task.priority}
                     </Badge>
-                    <Badge className={getStatusColor(contact.status)}>
-                      {contact.status}
+                    <Badge className={getStatusColor(task.status)}>
+                      {task.status.replace('_', ' ')}
                     </Badge>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Mail className="h-4 w-4" />
-                    {contact.email}
-                  </div>
-                  {contact.phone && (
+                  {task.due_date && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Phone className="h-4 w-4" />
-                      {contact.phone}
+                      <Calendar className="h-4 w-4" />
+                      Due: {new Date(task.due_date).toLocaleDateString()}
                     </div>
                   )}
-                  {contact.company && (
+                  {task.estimated_hours && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Building className="h-4 w-4" />
-                      {contact.company}
+                      <Clock className="h-4 w-4" />
+                      Est: {task.estimated_hours}h
+                      {task.actual_hours && ` / Actual: ${task.actual_hours}h`}
                     </div>
                   )}
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Calendar className="h-4 w-4" />
-                    {new Date(contact.created_at).toLocaleDateString()}
+                    Created: {new Date(task.created_at).toLocaleDateString()}
                   </div>
                 </div>
                 
-                <div>
-                  <p className="text-sm text-gray-700 line-clamp-3">
-                    {contact.message}
-                  </p>
-                </div>
+                {task.description && (
+                  <div>
+                    <p className="text-sm text-gray-700 line-clamp-3">
+                      {task.description}
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex gap-2">
                   <Button 
                     size="sm" 
                     variant="outline"
-                    onClick={() => updateContactStatus(contact.id, 'contacted')}
-                    disabled={contact.status === 'contacted'}
+                    onClick={() => updateTaskStatus(task.id, 'in_progress')}
+                    disabled={task.status === 'in_progress' || task.status === 'completed'}
                   >
-                    Mark Contacted
+                    Start
                   </Button>
                   <Button 
                     size="sm" 
                     variant="outline"
-                    onClick={() => updateContactStatus(contact.id, 'qualified')}
-                    disabled={contact.status === 'qualified'}
+                    onClick={() => updateTaskStatus(task.id, 'completed')}
+                    disabled={task.status === 'completed'}
                   >
-                    Mark Qualified
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => updateContactStatus(contact.id, 'closed')}
-                    disabled={contact.status === 'closed'}
-                  >
-                    Close
+                    Complete
                   </Button>
                 </div>
               </CardContent>
@@ -235,4 +238,4 @@ const ContactsManager = () => {
   );
 };
 
-export default ContactsManager;
+export default TasksManager;
