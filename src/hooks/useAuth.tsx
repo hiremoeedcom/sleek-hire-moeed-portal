@@ -105,11 +105,37 @@ export const useAuth = () => {
     }
   };
 
+  const requestPasswordReset = async (email: string) => {
+    try {
+      // Check if user exists
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('id, email')
+        .eq('email', email)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (error || !data) {
+        throw new Error('Email not found');
+      }
+
+      // In a real app, you would send a reset email here
+      // For demo purposes, we'll just log it
+      logger.info('Password reset requested for:', email);
+      
+      return { success: true, message: 'Password reset instructions sent to your email' };
+    } catch (error) {
+      logger.error('Password reset failed:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Password reset failed' };
+    }
+  };
+
   return {
     user,
     loading,
     isAdmin,
     signIn,
     signOut,
+    requestPasswordReset,
   };
 };

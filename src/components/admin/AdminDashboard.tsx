@@ -9,8 +9,9 @@ import ProjectsManager from './ProjectsManager';
 import TasksManager from './TasksManager';
 import EstimatesManager from './EstimatesManager';
 import QuotationsManager from './QuotationsManager';
+import EmailQuotesManager from './EmailQuotesManager';
 import AnalyticsOverview from './AnalyticsOverview';
-import { LogOut, Users, FolderOpen, CheckSquare, Calculator, FileText, BarChart3 } from 'lucide-react';
+import { LogOut, Users, FolderOpen, CheckSquare, Calculator, FileText, BarChart3, Mail } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
@@ -41,7 +42,7 @@ const AdminDashboard = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -57,6 +58,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="quotations" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               Quotations
+            </TabsTrigger>
+            <TabsTrigger value="email-quotes" className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Email Quotes
             </TabsTrigger>
             <TabsTrigger value="projects" className="flex items-center gap-2">
               <FolderOpen className="h-4 w-4" />
@@ -82,6 +87,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="quotations">
             <QuotationsManager />
+          </TabsContent>
+
+          <TabsContent value="email-quotes">
+            <EmailQuotesManager />
           </TabsContent>
 
           <TabsContent value="projects">

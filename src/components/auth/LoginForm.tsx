@@ -13,8 +13,9 @@ const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
-  const { signIn } = useAuth();
+  const { signIn, requestPasswordReset } = useAuth();
   const { toast } = useToast();
 
   const validateForm = () => {
@@ -25,7 +26,7 @@ const LoginForm = () => {
       errors.email = 'Please enter a valid email address';
     }
     
-    if (!password || password.length < 3) {
+    if (!showForgotPassword && (!password || password.length < 3)) {
       errors.password = 'Password is required';
     }
     
@@ -74,8 +75,51 @@ const LoginForm = () => {
         description: "Welcome to the admin dashboard!",
       });
       
+      // Navigation will be handled automatically by the Admin component
+      
     } catch (error) {
       logger.error('Login exception', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateEmail(sanitizeInput(email))) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLoading(true);
+
+    try {
+      const result = await requestPasswordReset(sanitizeInput(email));
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        });
+        setShowForgotPassword(false);
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to send reset instructions",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
@@ -89,18 +133,16 @@ const LoginForm = () => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Admin Login</CardTitle>
+        <CardTitle>{showForgotPassword ? 'Reset Password' : 'Admin Login'}</CardTitle>
         <CardDescription>
-          Enter your credentials to access the admin dashboard
+          {showForgotPassword 
+            ? 'Enter your email to receive reset instructions'
+            : 'Enter your credentials to access the admin dashboard'
+          }
         </CardDescription>
-        <div className="mt-4 p-3 bg-gray-50 rounded-md">
-          <p className="text-sm text-gray-600 font-medium">Demo Credentials:</p>
-          <p className="text-sm text-gray-600">Email: admin@company.com</p>
-          <p className="text-sm text-gray-600">Password: Admin123!</p>
-        </div>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={showForgotPassword ? handleForgotPassword : handleLogin} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -122,30 +164,51 @@ const LoginForm = () => {
               <p className="text-sm text-red-600">{validationErrors.email}</p>
             )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (validationErrors.password) {
-                  setValidationErrors(prev => ({...prev, password: ''}));
-                }
-              }}
-              placeholder="Enter your password"
-              required
-              disabled={loading}
-              autoComplete="current-password"
-            />
-            {validationErrors.password && (
-              <p className="text-sm text-red-600">{validationErrors.password}</p>
-            )}
-          </div>
+          
+          {!showForgotPassword && (
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (validationErrors.password) {
+                    setValidationErrors(prev => ({...prev, password: ''}));
+                  }
+                }}
+                placeholder="Enter your password"
+                required
+                disabled={loading}
+                autoComplete="current-password"
+              />
+              {validationErrors.password && (
+                <p className="text-sm text-red-600">{validationErrors.password}</p>
+              )}
+            </div>
+          )}
+          
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+            {loading 
+              ? (showForgotPassword ? "Sending..." : "Signing in...") 
+              : (showForgotPassword ? "Send Reset Link" : "Sign In")
+            }
           </Button>
+          
+          <div className="text-center space-y-2">
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => {
+                setShowForgotPassword(!showForgotPassword);
+                setValidationErrors({});
+              }}
+              className="text-sm"
+            >
+              {showForgotPassword ? 'Back to Login' : 'Forgot Password?'}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>
