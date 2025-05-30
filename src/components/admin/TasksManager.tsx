@@ -1,8 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
@@ -24,13 +28,21 @@ interface Task {
   };
 }
 
+interface Project {
+  id: string;
+  name: string;
+}
+
 const TasksManager = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchTasks();
+    fetchProjects();
   }, []);
 
   const fetchTasks = async () => {
@@ -65,6 +77,52 @@ const TasksManager = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, name')
+        .order('name');
+
+      if (error) throw error;
+      setProjects(data || []);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    }
+  };
+
+  const createTask = async (taskData: any) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .insert({
+          title: taskData.title,
+          description: taskData.description,
+          priority: taskData.priority,
+          due_date: taskData.due_date || null,
+          estimated_hours: taskData.estimated_hours ? parseInt(taskData.estimated_hours) : null,
+          project_id: taskData.project_id || null,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Task created successfully",
+      });
+
+      setIsCreateDialogOpen(false);
+      fetchTasks();
+    } catch (error) {
+      console.error('Error creating task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create task",
+        variant: "destructive",
+      });
     }
   };
 
@@ -138,10 +196,20 @@ const TasksManager = () => {
           <h2 className="text-2xl font-bold">Tasks</h2>
           <p className="text-gray-600">Manage your tasks and track progress</p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Task
-        </Button>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Task
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Task</DialogTitle>
+            </DialogHeader>
+            <CreateTaskForm projects={projects} onSubmit={createTask} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {tasks.length === 0 ? (
@@ -235,6 +303,97 @@ const TasksManager = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const CreateTaskForm = ({ projects, onSubmit }: { projects: Project[], onSubmit: (data: any) => void }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    priority: 'medium',
+    due_date: '',
+    estimated_hours: '',
+    project_id: '',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="task-title">Title</Label>
+        <Input
+          id="task-title"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="task-description">Description</Label>
+        <Textarea
+          id="task-description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={3}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="priority">Priority</Label>
+          <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="estimated-hours">Estimated Hours</Label>
+          <Input
+            id="estimated-hours"
+            type="number"
+            min="1"
+            value={formData.estimated_hours}
+            onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="due-date">Due Date</Label>
+        <Input
+          id="due-date"
+          type="date"
+          value={formData.due_date}
+          onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="project">Project (Optional)</Label>
+        <Select value={formData.project_id} onValueChange={(value) => setFormData({ ...formData, project_id: value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a project" />
+          </SelectTrigger>
+          <SelectContent>
+            {projects.map((project) => (
+              <SelectItem key={project.id} value={project.id}>
+                {project.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Button type="submit" className="w-full">
+        Create Task
+      </Button>
+    </form>
   );
 };
 

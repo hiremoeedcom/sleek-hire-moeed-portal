@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Download, Send } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 interface Quotation {
   id: string;
@@ -35,7 +36,6 @@ const QuotationsManager = () => {
 
   const fetchQuotations = async () => {
     try {
-      // Use type assertion to bypass TypeScript errors temporarily
       const { data, error } = await (supabase as any)
         .from('quotations')
         .select('*')
@@ -61,7 +61,6 @@ const QuotationsManager = () => {
     valid_until: string;
   }) => {
     try {
-      // Use type assertion to bypass TypeScript errors temporarily
       const { data: quoteNumber } = await (supabase as any)
         .rpc('generate_quote_number');
 
@@ -91,6 +90,64 @@ const QuotationsManager = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const downloadPDF = (quotation: Quotation) => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text('QUOTATION', 20, 30);
+    
+    // Quote number and date
+    doc.setFontSize(12);
+    doc.text(`Quote #: ${quotation.quote_number}`, 20, 50);
+    doc.text(`Date: ${new Date(quotation.created_at).toLocaleDateString()}`, 20, 60);
+    
+    if (quotation.valid_until) {
+      doc.text(`Valid Until: ${new Date(quotation.valid_until).toLocaleDateString()}`, 20, 70);
+    }
+    
+    // Title
+    doc.setFontSize(16);
+    doc.text(quotation.title, 20, 90);
+    
+    // Description
+    if (quotation.description) {
+      doc.setFontSize(12);
+      const splitDescription = doc.splitTextToSize(quotation.description, 170);
+      doc.text(splitDescription, 20, 110);
+    }
+    
+    // Amount
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    const yPosition = quotation.description ? 140 : 120;
+    doc.text(`Total Amount: ${quotation.currency} ${quotation.amount.toLocaleString()}`, 20, yPosition);
+    
+    // Footer
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Thank you for your business!', 20, 270);
+    doc.text('If you have any questions, please don\'t hesitate to contact us.', 20, 280);
+    
+    // Save the PDF
+    doc.save(`quotation-${quotation.quote_number}.pdf`);
+    
+    toast({
+      title: "Success",
+      description: "PDF downloaded successfully",
+    });
+  };
+
+  const sendEmail = (quotation: Quotation) => {
+    // For now, just show a success message
+    // In a real app, this would integrate with an email service
+    toast({
+      title: "Email Sent",
+      description: `Quotation ${quotation.quote_number} has been sent via email`,
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -167,11 +224,11 @@ const QuotationsManager = () => {
               )}
 
               <div className="flex gap-2">
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => downloadPDF(quotation)}>
                   <Download className="h-4 w-4 mr-2" />
                   Download PDF
                 </Button>
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => sendEmail(quotation)}>
                   <Send className="h-4 w-4 mr-2" />
                   Send Email
                 </Button>

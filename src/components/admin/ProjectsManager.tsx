@@ -1,8 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
@@ -22,13 +26,23 @@ interface Project {
   created_at: string;
 }
 
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  company?: string;
+}
+
 const ProjectsManager = () => {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchProjects();
+    fetchContacts();
   }, []);
 
   const fetchProjects = async () => {
@@ -58,6 +72,54 @@ const ProjectsManager = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchContacts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('id, name, email, company')
+        .order('name');
+
+      if (error) throw error;
+      setContacts(data || []);
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+    }
+  };
+
+  const createProject = async (projectData: any) => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .insert({
+          name: projectData.name,
+          description: projectData.description,
+          client_name: projectData.client_name,
+          client_email: projectData.client_email,
+          priority: projectData.priority,
+          budget: projectData.budget ? parseFloat(projectData.budget) : null,
+          start_date: projectData.start_date || null,
+          end_date: projectData.end_date || null,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Project created successfully",
+      });
+
+      setIsCreateDialogOpen(false);
+      fetchProjects();
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create project",
+        variant: "destructive",
+      });
     }
   };
 
@@ -132,10 +194,20 @@ const ProjectsManager = () => {
           <h2 className="text-2xl font-bold">Projects</h2>
           <p className="text-gray-600">Manage your client projects and deliverables</p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          New Project
-        </Button>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              New Project
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Create New Project</DialogTitle>
+            </DialogHeader>
+            <CreateProjectForm contacts={contacts} onSubmit={createProject} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {projects.length === 0 ? (
@@ -237,6 +309,143 @@ const ProjectsManager = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const CreateProjectForm = ({ contacts, onSubmit }: { contacts: Contact[], onSubmit: (data: any) => void }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    client_name: '',
+    client_email: '',
+    priority: 'medium',
+    budget: '',
+    start_date: '',
+    end_date: '',
+  });
+
+  const selectContact = (contactEmail: string) => {
+    const contact = contacts.find(c => c.email === contactEmail);
+    if (contact) {
+      setFormData(prev => ({
+        ...prev,
+        client_name: contact.name,
+        client_email: contact.email,
+      }));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="project-name">Project Name</Label>
+        <Input
+          id="project-name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="project-description">Description</Label>
+        <Textarea
+          id="project-description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={3}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="contact-select">Select Existing Contact</Label>
+        <Select onValueChange={selectContact}>
+          <SelectTrigger>
+            <SelectValue placeholder="Choose a contact or enter manually" />
+          </SelectTrigger>
+          <SelectContent>
+            {contacts.map((contact) => (
+              <SelectItem key={contact.id} value={contact.email}>
+                {contact.name} ({contact.email})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="client-name">Client Name</Label>
+          <Input
+            id="client-name"
+            value={formData.client_name}
+            onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="client-email">Client Email</Label>
+          <Input
+            id="client-email"
+            type="email"
+            value={formData.client_email}
+            onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
+            required
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="priority">Priority</Label>
+          <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="budget">Budget (USD)</Label>
+          <Input
+            id="budget"
+            type="number"
+            min="0"
+            step="0.01"
+            value={formData.budget}
+            onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="start-date">Start Date</Label>
+          <Input
+            id="start-date"
+            type="date"
+            value={formData.start_date}
+            onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="end-date">End Date</Label>
+          <Input
+            id="end-date"
+            type="date"
+            value={formData.end_date}
+            onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+          />
+        </div>
+      </div>
+      <Button type="submit" className="w-full">
+        Create Project
+      </Button>
+    </form>
   );
 };
 
