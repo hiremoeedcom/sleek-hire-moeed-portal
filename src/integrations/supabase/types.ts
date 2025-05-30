@@ -134,6 +134,57 @@ export type Database = {
           },
         ]
       }
+      estimates: {
+        Row: {
+          budget: string | null
+          company: string | null
+          created_at: string
+          description: string | null
+          email: string
+          estimated_cost_max: number
+          estimated_cost_min: number
+          features: string[] | null
+          id: string
+          name: string
+          project_type: string
+          status: string
+          timeline: string | null
+          updated_at: string
+        }
+        Insert: {
+          budget?: string | null
+          company?: string | null
+          created_at?: string
+          description?: string | null
+          email: string
+          estimated_cost_max?: number
+          estimated_cost_min?: number
+          features?: string[] | null
+          id?: string
+          name: string
+          project_type: string
+          status?: string
+          timeline?: string | null
+          updated_at?: string
+        }
+        Update: {
+          budget?: string | null
+          company?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string
+          estimated_cost_max?: number
+          estimated_cost_min?: number
+          features?: string[] | null
+          id?: string
+          name?: string
+          project_type?: string
+          status?: string
+          timeline?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           assigned_to: string | null
@@ -189,6 +240,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quotations: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          quote_number: string
+          status: string
+          title: string
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          quote_number: string
+          status?: string
+          title: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          quote_number?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: []
       }
       tasks: {
         Row: {
@@ -255,7 +345,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_quote_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       project_type:
