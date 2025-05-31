@@ -8,8 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Download, Send } from 'lucide-react';
+import { Plus, Download, Send, Trash, Edit } from 'lucide-react';
 import { generateProfessionalQuotePDF } from '@/utils/pdfGenerator';
 
 interface Quotation {
@@ -22,6 +23,15 @@ interface Quotation {
   status: string;
   valid_until?: string;
   created_at: string;
+  client_name?: string;
+  client_email?: string;
+  client_phone?: string;
+  client_company?: string;
+  project_timeline?: string;
+  payment_terms?: string;
+  notes?: string;
+  tax_rate?: number;
+  discount_amount?: number;
 }
 
 const QuotationsManager = () => {
@@ -62,12 +72,7 @@ const QuotationsManager = () => {
     }
   };
 
-  const createQuotation = async (formData: {
-    title: string;
-    description: string;
-    amount: number;
-    valid_until: string;
-  }) => {
+  const createQuotation = async (formData: any) => {
     try {
       const { data: quoteNumber } = await (supabase as any)
         .rpc('generate_quote_number');
@@ -76,10 +81,7 @@ const QuotationsManager = () => {
         .from('quotations')
         .insert({
           quote_number: quoteNumber,
-          title: formData.title,
-          description: formData.description,
-          amount: formData.amount,
-          valid_until: formData.valid_until,
+          ...formData,
         });
 
       if (error) throw error;
@@ -95,6 +97,32 @@ const QuotationsManager = () => {
       toast({
         title: "Error",
         description: "Failed to create quotation",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteQuotation = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this quotation?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('quotations')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Quotation deleted successfully",
+      });
+
+      fetchQuotations();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete quotation",
         variant: "destructive",
       });
     }
@@ -129,7 +157,6 @@ const QuotationsManager = () => {
     }
 
     try {
-      // Generate PDF as base64 for email attachment
       const doc = generateProfessionalQuotePDF(quotation);
       const pdfBase64 = doc.output('datauristring').split(',')[1];
 
@@ -163,7 +190,10 @@ const QuotationsManager = () => {
 
   const openEmailDialog = (quotation: Quotation) => {
     setEmailDialog({ open: true, quotation });
-    setEmailData({ customerEmail: '', customerName: '' });
+    setEmailData({ 
+      customerEmail: quotation.client_email || '', 
+      customerName: quotation.client_name || '' 
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -192,7 +222,7 @@ const QuotationsManager = () => {
                 New Quote
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Quotation</DialogTitle>
               </DialogHeader>
@@ -210,6 +240,9 @@ const QuotationsManager = () => {
                 <div>
                   <CardTitle className="text-lg">{quotation.title}</CardTitle>
                   <p className="text-sm text-muted-foreground">#{quotation.quote_number}</p>
+                  {quotation.client_name && (
+                    <p className="text-sm text-muted-foreground">Client: {quotation.client_name}</p>
+                  )}
                 </div>
                 <Badge className={getStatusColor(quotation.status)}>
                   {quotation.status}
@@ -217,7 +250,7 @@ const QuotationsManager = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <div>
                   <span className="text-sm font-medium">Amount: </span>
                   <span className="text-lg font-bold">
@@ -230,6 +263,10 @@ const QuotationsManager = () => {
                     {quotation.valid_until ? new Date(quotation.valid_until).toLocaleDateString() : 'No expiry'}
                   </span>
                 </div>
+                <div>
+                  <span className="text-sm font-medium">Timeline: </span>
+                  <span className="text-sm">{quotation.project_timeline || 'Not specified'}</span>
+                </div>
               </div>
               
               {quotation.description && (
@@ -239,7 +276,7 @@ const QuotationsManager = () => {
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button size="sm" variant="outline" onClick={() => downloadPDF(quotation)}>
                   <Download className="h-4 w-4 mr-2" />
                   Download PDF
@@ -247,6 +284,15 @@ const QuotationsManager = () => {
                 <Button size="sm" variant="outline" onClick={() => openEmailDialog(quotation)}>
                   <Send className="h-4 w-4 mr-2" />
                   Send Email
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-red-600 hover:text-red-700"
+                  onClick={() => deleteQuotation(quotation.id)}
+                >
+                  <Trash className="h-4 w-4 mr-2" />
+                  Delete
                 </Button>
               </div>
             </CardContent>
@@ -300,7 +346,17 @@ const CreateQuoteForm = ({ onSubmit }: { onSubmit: (data: any) => void }) => {
     title: '',
     description: '',
     amount: 0,
+    currency: 'USD',
     valid_until: '',
+    client_name: '',
+    client_email: '',
+    client_phone: '',
+    client_company: '',
+    project_timeline: '',
+    payment_terms: '50% upfront, 50% on completion',
+    notes: '',
+    tax_rate: 0,
+    discount_amount: 0,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -308,45 +364,163 @@ const CreateQuoteForm = ({ onSubmit }: { onSubmit: (data: any) => void }) => {
     onSubmit(formData);
   };
 
+  const updateField = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          required
-        />
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="title">Project Title *</Label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) => updateField('title', e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="project_timeline">Project Timeline</Label>
+          <Input
+            id="project_timeline"
+            value={formData.project_timeline}
+            onChange={(e) => updateField('project_timeline', e.target.value)}
+            placeholder="e.g., 4-6 weeks"
+          />
+        </div>
       </div>
+
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">Project Description</Label>
         <Textarea
           id="description"
           value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          onChange={(e) => updateField('description', e.target.value)}
           rows={3}
+          placeholder="Detailed description of the project scope and deliverables"
         />
       </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="client_name">Client Name</Label>
+          <Input
+            id="client_name"
+            value={formData.client_name}
+            onChange={(e) => updateField('client_name', e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="client_email">Client Email</Label>
+          <Input
+            id="client_email"
+            type="email"
+            value={formData.client_email}
+            onChange={(e) => updateField('client_email', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="client_phone">Client Phone</Label>
+          <Input
+            id="client_phone"
+            value={formData.client_phone}
+            onChange={(e) => updateField('client_phone', e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="client_company">Client Company</Label>
+          <Input
+            id="client_company"
+            value={formData.client_company}
+            onChange={(e) => updateField('client_company', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="amount">Amount *</Label>
+          <Input
+            id="amount"
+            type="number"
+            value={formData.amount}
+            onChange={(e) => updateField('amount', Number(e.target.value))}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="currency">Currency</Label>
+          <Select value={formData.currency} onValueChange={(value) => updateField('currency', value)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="USD">USD</SelectItem>
+              <SelectItem value="EUR">EUR</SelectItem>
+              <SelectItem value="GBP">GBP</SelectItem>
+              <SelectItem value="PKR">PKR</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="valid_until">Valid Until</Label>
+          <Input
+            id="valid_until"
+            type="date"
+            value={formData.valid_until}
+            onChange={(e) => updateField('valid_until', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="tax_rate">Tax Rate (%)</Label>
+          <Input
+            id="tax_rate"
+            type="number"
+            step="0.01"
+            value={formData.tax_rate}
+            onChange={(e) => updateField('tax_rate', Number(e.target.value))}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="discount_amount">Discount Amount</Label>
+          <Input
+            id="discount_amount"
+            type="number"
+            value={formData.discount_amount}
+            onChange={(e) => updateField('discount_amount', Number(e.target.value))}
+          />
+        </div>
+      </div>
+
       <div className="space-y-2">
-        <Label htmlFor="amount">Amount (USD)</Label>
-        <Input
-          id="amount"
-          type="number"
-          value={formData.amount}
-          onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
-          required
+        <Label htmlFor="payment_terms">Payment Terms</Label>
+        <Textarea
+          id="payment_terms"
+          value={formData.payment_terms}
+          onChange={(e) => updateField('payment_terms', e.target.value)}
+          rows={2}
+          placeholder="Payment terms and conditions"
         />
       </div>
+
       <div className="space-y-2">
-        <Label htmlFor="valid_until">Valid Until</Label>
-        <Input
-          id="valid_until"
-          type="date"
-          value={formData.valid_until}
-          onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })}
+        <Label htmlFor="notes">Additional Notes</Label>
+        <Textarea
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => updateField('notes', e.target.value)}
+          rows={3}
+          placeholder="Any additional notes or special requirements"
         />
       </div>
+
       <Button type="submit" className="w-full">
         Create Quotation
       </Button>
