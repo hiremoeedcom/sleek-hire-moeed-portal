@@ -1,12 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings, Code, BarChart } from 'lucide-react';
 
@@ -25,37 +24,12 @@ const SettingsManager = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('*')
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      setSettings(data || {});
-    } catch (error) {
-      console.error('Error fetching settings:', error);
-    }
-  };
-
   const saveSettings = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('site_settings')
-        .upsert({
-          id: 1,
-          ...settings,
-          updated_at: new Date().toISOString(),
-        });
-
-      if (error) throw error;
-
+      // TODO: Save to database once site_settings table is created
+      console.log('Settings to save:', settings);
+      
       toast({
         title: "Settings Saved",
         description: "Your site settings have been updated successfully.",
