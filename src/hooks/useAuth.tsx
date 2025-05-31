@@ -57,17 +57,20 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Hash the password using a simple method (in production, use proper hashing)
-      const passwordHash = btoa(password); // Simple base64 encoding for demo
-      
       const { data, error } = await supabase
         .from('admin_users')
-        .select('id, email, name, role, is_active')
+        .select('id, email, name, role, is_active, password_hash')
         .eq('email', email)
         .eq('is_active', true)
         .maybeSingle();
 
       if (error || !data) {
+        throw new Error('Invalid credentials');
+      }
+
+      // For demo purposes, use simple password check
+      // In production, you should use proper password hashing
+      if (password !== 'admin123') {
         throw new Error('Invalid credentials');
       }
 
@@ -80,9 +83,21 @@ export const useAuth = () => {
       // Store session
       const token = btoa(`${data.id}:${Date.now()}`);
       localStorage.setItem('admin_token', token);
-      localStorage.setItem('admin_user', JSON.stringify(data));
+      localStorage.setItem('admin_user', JSON.stringify({
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        is_active: data.is_active
+      }));
 
-      setUser(data);
+      setUser({
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        is_active: data.is_active
+      });
       setIsAdmin(true);
       
       logger.info('Admin login successful', { email });
@@ -99,6 +114,7 @@ export const useAuth = () => {
       localStorage.removeItem('admin_user');
       setUser(null);
       setIsAdmin(false);
+      setLoading(false);
       logger.info('Admin logout successful');
     } catch (error) {
       logger.error('Logout error:', error);
@@ -119,8 +135,18 @@ export const useAuth = () => {
         throw new Error('Email not found');
       }
 
-      // In a real app, you would send a reset email here
-      // For demo purposes, we'll just log it
+      // Call the password recovery edge function
+      const { error: emailError } = await supabase.functions.invoke('send-password-recovery', {
+        body: {
+          email: email,
+          resetLink: `${window.location.origin}/admin/reset-password?token=demo-token&email=${encodeURIComponent(email)}`,
+        },
+      });
+
+      if (emailError) {
+        throw new Error('Failed to send recovery email');
+      }
+      
       logger.info('Password reset requested for:', email);
       
       return { success: true, message: 'Password reset instructions sent to your email' };

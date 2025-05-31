@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 
 const LoginForm = () => {
@@ -17,52 +17,25 @@ const LoginForm = () => {
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [recoveryLoading, setRecoveryLoading] = useState(false);
   const { toast } = useToast();
+  const { signIn, requestPasswordReset } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Check admin_users table for credentials
-      const { data: adminUser, error: fetchError } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('email', email)
-        .eq('is_active', true)
-        .single();
-
-      if (fetchError || !adminUser) {
-        toast({
-          title: "Login Failed",
-          description: "Invalid email or account not found",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Here you would typically verify the password hash
-      // For demo purposes, we'll do a simple comparison
-      if (password === 'admin123') { // Replace with proper hash verification
-        // Update last login
-        await supabase
-          .from('admin_users')
-          .update({ last_login: new Date().toISOString() })
-          .eq('id', adminUser.id);
-
-        // Set user session in localStorage for demo
-        localStorage.setItem('adminUser', JSON.stringify(adminUser));
-        
+      const result = await signIn(email, password);
+      
+      if (result.success) {
         toast({
           title: "Login Successful",
           description: "Welcome to the admin dashboard",
         });
-
-        // Trigger a reload to update the auth state
-        window.location.reload();
+        // The useAuth hook will handle the redirect
       } else {
         toast({
           title: "Login Failed",
-          description: "Invalid password",
+          description: result.error || "Invalid credentials",
           variant: "destructive",
         });
       }
@@ -83,51 +56,22 @@ const LoginForm = () => {
     setRecoveryLoading(true);
 
     try {
-      // Check if admin user exists
-      const { data: adminUser, error: fetchError } = await supabase
-        .from('admin_users')
-        .select('email, name')
-        .eq('email', recoveryEmail)
-        .eq('is_active', true)
-        .single();
-
-      if (fetchError || !adminUser) {
+      const result = await requestPasswordReset(recoveryEmail);
+      
+      if (result.success) {
         toast({
-          title: "Email Not Found",
-          description: "No admin account found with this email address",
+          title: "Recovery Email Sent",
+          description: result.message || "Please check your email for password recovery instructions",
+        });
+        setRecoveryMode(false);
+        setRecoveryEmail('');
+      } else {
+        toast({
+          title: "Recovery Failed",
+          description: result.error || "Unable to send recovery email",
           variant: "destructive",
         });
-        return;
       }
-
-      // Generate a recovery link (in production, this would be a secure token)
-      const recoveryLink = `${window.location.origin}/admin/reset-password?token=demo-token&email=${encodeURIComponent(recoveryEmail)}`;
-
-      // Send recovery email via edge function
-      const { error: emailError } = await supabase.functions.invoke('send-password-recovery', {
-        body: {
-          email: recoveryEmail,
-          resetLink: recoveryLink,
-        },
-      });
-
-      if (emailError) {
-        console.error('Email sending error:', emailError);
-        toast({
-          title: "Email Service Unavailable",
-          description: "Unable to send recovery email. Please contact support.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Recovery Email Sent",
-        description: "Please check your email for password recovery instructions",
-      });
-
-      setRecoveryMode(false);
-      setRecoveryEmail('');
     } catch (error) {
       console.error('Password recovery error:', error);
       toast({
@@ -247,14 +191,6 @@ const LoginForm = () => {
             Forgot your password?
           </Button>
         </form>
-        
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm text-blue-800">
-            <strong>Demo Credentials:</strong><br />
-            Email: admin@example.com<br />
-            Password: admin123
-          </p>
-        </div>
       </CardContent>
     </Card>
   );

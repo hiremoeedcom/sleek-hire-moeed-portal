@@ -4,83 +4,107 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Calculator, CheckCircle } from 'lucide-react';
-
-type ProjectType = 'website' | 'webapp' | 'mobile' | 'fullstack' | 'ecommerce' | 'api';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { Loader2, Calculator } from 'lucide-react';
 
 const EstimateForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     company: '',
-    project_type: '' as ProjectType,
+    projectType: '',
     budget: '',
     timeline: '',
-    features: [] as string[],
     description: '',
+    features: [] as string[]
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const projectFeatures = [
-    'User Authentication',
-    'Database Integration',
-    'Payment Processing',
-    'Real-time Features',
-    'API Development',
-    'Admin Dashboard',
-    'Mobile Responsive',
-    'SEO Optimization',
-    'Email Integration',
-    'File Upload',
-    'Social Media Integration',
-    'Analytics Integration',
+  const projectTypes = [
+    { value: 'website', label: 'Website' },
+    { value: 'webapp', label: 'Web Application' },
+    { value: 'mobile', label: 'Mobile App' },
+    { value: 'fullstack', label: 'Full Stack Application' },
+    { value: 'ecommerce', label: 'E-commerce Store' },
+    { value: 'api', label: 'API Development' }
   ];
 
-  const calculateEstimate = () => {
-    let basePrice = 0;
-    let multiplier = 1;
+  const budgetRanges = [
+    'Under $5,000',
+    '$5,000 - $10,000',
+    '$10,000 - $25,000',
+    '$25,000 - $50,000',
+    '$50,000+'
+  ];
 
-    // Base price by project type
-    switch (formData.project_type) {
+  const timelineOptions = [
+    'ASAP',
+    '1-2 weeks',
+    '1-2 months',
+    '3-6 months',
+    '6+ months'
+  ];
+
+  const featureOptions = [
+    'User Authentication',
+    'Payment Processing',
+    'Database Integration',
+    'API Development',
+    'Admin Dashboard',
+    'Real-time Features',
+    'Mobile Responsive',
+    'SEO Optimization',
+    'Analytics Integration',
+    'Third-party Integrations',
+    'Content Management',
+    'Multi-language Support'
+  ];
+
+  const calculateEstimate = (type: string, features: string[], budget: string) => {
+    let baseMin = 2000;
+    let baseMax = 5000;
+
+    // Adjust based on project type
+    switch (type) {
       case 'website':
-        basePrice = 2000;
+        baseMin = 2000;
+        baseMax = 8000;
         break;
       case 'webapp':
-        basePrice = 5000;
+        baseMin = 5000;
+        baseMax = 15000;
         break;
       case 'mobile':
-        basePrice = 8000;
+        baseMin = 8000;
+        baseMax = 25000;
         break;
       case 'fullstack':
-        basePrice = 10000;
+        baseMin = 10000;
+        baseMax = 35000;
         break;
       case 'ecommerce':
-        basePrice = 7000;
+        baseMin = 8000;
+        baseMax = 30000;
         break;
       case 'api':
-        basePrice = 3000;
+        baseMin = 3000;
+        baseMax = 12000;
         break;
-      default:
-        basePrice = 3000;
     }
 
-    // Feature complexity multiplier
-    const featureCount = formData.features.length;
-    if (featureCount > 8) multiplier = 1.8;
-    else if (featureCount > 5) multiplier = 1.5;
-    else if (featureCount > 3) multiplier = 1.3;
-    else if (featureCount > 0) multiplier = 1.1;
+    // Adjust based on features
+    const featureMultiplier = 1 + (features.length * 0.15);
+    baseMin = Math.round(baseMin * featureMultiplier);
+    baseMax = Math.round(baseMax * featureMultiplier);
 
-    const minCost = Math.round(basePrice * multiplier);
-    const maxCost = Math.round(minCost * 1.5);
-
-    return { minCost, maxCost };
+    return { min: baseMin, max: baseMax };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,46 +112,48 @@ const EstimateForm = () => {
     setLoading(true);
 
     try {
-      const { minCost, maxCost } = calculateEstimate();
+      const estimate = calculateEstimate(formData.projectType, formData.features, formData.budget);
 
       const { error } = await supabase
         .from('estimates')
         .insert({
           name: formData.name,
           email: formData.email,
-          company: formData.company,
-          project_type: formData.project_type,
-          budget: formData.budget,
-          timeline: formData.timeline,
+          company: formData.company || null,
+          project_type: formData.projectType,
+          budget: formData.budget || null,
+          timeline: formData.timeline || null,
           features: formData.features,
-          description: formData.description,
-          estimated_cost_min: minCost,
-          estimated_cost_max: maxCost,
+          description: formData.description || null,
+          estimated_cost_min: estimate.min,
+          estimated_cost_max: estimate.max,
+          status: 'pending'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Estimate submission error:', error);
+        throw error;
+      }
 
       toast({
-        title: "Estimate Request Submitted!",
-        description: `Estimated cost: $${minCost.toLocaleString()} - $${maxCost.toLocaleString()}. We'll review and send you a detailed quote.`,
+        title: "Estimate Submitted!",
+        description: "Thank you! I'll review your requirements and get back to you soon.",
       });
 
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        company: '',
-        project_type: '' as ProjectType,
-        budget: '',
-        timeline: '',
-        features: [],
-        description: '',
-      });
+      // Store estimate data for contact page
+      localStorage.setItem('estimateData', JSON.stringify({
+        ...formData,
+        estimate
+      }));
+
+      // Navigate to contact page
+      navigate('/contact');
+
     } catch (error) {
-      console.error('Error submitting estimate:', error);
+      console.error('Estimate form error:', error);
       toast({
         title: "Error",
-        description: "Failed to submit estimate request. Please try again.",
+        description: "There was an error submitting your estimate. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -135,123 +161,145 @@ const EstimateForm = () => {
     }
   };
 
-  const handleChange = (name: string, value: string) => {
-    if (name === 'project_type') {
-      setFormData(prev => ({ ...prev, [name]: value as ProjectType }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
   const handleFeatureChange = (feature: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
-      features: checked
+      features: checked 
         ? [...prev.features, feature]
         : prev.features.filter(f => f !== feature)
     }));
   };
 
-  const { minCost, maxCost } = calculateEstimate();
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card className="max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calculator className="h-5 w-5" />
-          Project Estimate Calculator
+        <CardTitle className="text-2xl flex items-center gap-2">
+          <Calculator className="h-6 w-6" />
+          Project Estimate Request
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Information */}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
+              <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 required
+                disabled={loading}
+                placeholder="Your full name"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address *</Label>
+              <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
                 required
+                disabled={loading}
+                placeholder="your.email@example.com"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="company">Company</Label>
+            <Label htmlFor="company">Company (Optional)</Label>
             <Input
               id="company"
               value={formData.company}
               onChange={(e) => handleChange('company', e.target.value)}
+              disabled={loading}
+              placeholder="Your company name"
             />
           </div>
 
+          {/* Project Details */}
           <div className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="project_type">Project Type *</Label>
-              <Select value={formData.project_type} onValueChange={(value) => handleChange('project_type', value)}>
+              <Label>Project Type *</Label>
+              <Select 
+                value={formData.projectType} 
+                onValueChange={(value) => handleChange('projectType', value)}
+                disabled={loading}
+                required
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select project type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="website">Website</SelectItem>
-                  <SelectItem value="webapp">Web Application</SelectItem>
-                  <SelectItem value="mobile">Mobile App</SelectItem>
-                  <SelectItem value="fullstack">Full Stack Application</SelectItem>
-                  <SelectItem value="ecommerce">E-commerce</SelectItem>
-                  <SelectItem value="api">API Development</SelectItem>
+                  {projectTypes.map(type => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="budget">Budget Range</Label>
-              <Select value={formData.budget} onValueChange={(value) => handleChange('budget', value)}>
+              <Label>Budget Range</Label>
+              <Select 
+                value={formData.budget} 
+                onValueChange={(value) => handleChange('budget', value)}
+                disabled={loading}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select budget" />
+                  <SelectValue placeholder="Select budget range" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="< $5k">Less than $5,000</SelectItem>
-                  <SelectItem value="$5k - $15k">$5,000 - $15,000</SelectItem>
-                  <SelectItem value="$15k - $50k">$15,000 - $50,000</SelectItem>
-                  <SelectItem value="$50k+">$50,000+</SelectItem>
+                  {budgetRanges.map(range => (
+                    <SelectItem key={range} value={range}>
+                      {range}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="timeline">Timeline</Label>
-              <Select value={formData.timeline} onValueChange={(value) => handleChange('timeline', value)}>
+              <Label>Timeline</Label>
+              <Select 
+                value={formData.timeline} 
+                onValueChange={(value) => handleChange('timeline', value)}
+                disabled={loading}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select timeline" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ASAP">ASAP</SelectItem>
-                  <SelectItem value="1-2 weeks">1-2 weeks</SelectItem>
-                  <SelectItem value="1 month">1 month</SelectItem>
-                  <SelectItem value="2-3 months">2-3 months</SelectItem>
-                  <SelectItem value="3+ months">3+ months</SelectItem>
+                  {timelineOptions.map(timeline => (
+                    <SelectItem key={timeline} value={timeline}>
+                      {timeline}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
+          {/* Features */}
           <div className="space-y-4">
-            <Label>Required Features</Label>
-            <div className="grid md:grid-cols-3 gap-3">
-              {projectFeatures.map((feature) => (
+            <Label>Features & Requirements</Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {featureOptions.map(feature => (
                 <div key={feature} className="flex items-center space-x-2">
                   <Checkbox
                     id={feature}
                     checked={formData.features.includes(feature)}
                     onCheckedChange={(checked) => handleFeatureChange(feature, checked as boolean)}
+                    disabled={loading}
                   />
                   <Label htmlFor={feature} className="text-sm">
                     {feature}
@@ -261,36 +309,33 @@ const EstimateForm = () => {
             </div>
           </div>
 
+          {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description">Project Description</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
-              rows={4}
-              placeholder="Describe your project requirements in detail..."
+              disabled={loading}
+              placeholder="Describe your project in detail..."
+              className="min-h-[100px]"
             />
           </div>
 
-          {formData.project_type && (
-            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  <h3 className="font-semibold text-lg">Estimated Cost Range</h3>
-                </div>
-                <p className="text-2xl font-bold text-blue-600">
-                  ${minCost.toLocaleString()} - ${maxCost.toLocaleString()}
-                </p>
-                <p className="text-sm text-gray-600 mt-2">
-                  This is a preliminary estimate. Final pricing will be provided after detailed requirements analysis.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Submitting..." : "Get Detailed Quote"}
+          <Button 
+            type="submit" 
+            disabled={loading || !formData.name || !formData.email || !formData.projectType}
+            className="w-full"
+            size="lg"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              'Get My Estimate'
+            )}
           </Button>
         </form>
       </CardContent>
