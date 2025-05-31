@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Download, Send } from 'lucide-react';
-import jsPDF from 'jspdf';
+import { generateProfessionalQuotePDF } from '@/utils/pdfGenerator';
 
 interface Quotation {
   id: string;
@@ -28,6 +28,14 @@ const QuotationsManager = () => {
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [emailDialog, setEmailDialog] = useState<{ open: boolean; quotation: Quotation | null }>({
+    open: false,
+    quotation: null,
+  });
+  const [emailData, setEmailData] = useState({
+    customerEmail: '',
+    customerName: '',
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -93,61 +101,69 @@ const QuotationsManager = () => {
   };
 
   const downloadPDF = (quotation: Quotation) => {
-    const doc = new jsPDF();
-    
-    // Header
-    doc.setFontSize(20);
-    doc.setTextColor(40, 40, 40);
-    doc.text('QUOTATION', 20, 30);
-    
-    // Quote number and date
-    doc.setFontSize(12);
-    doc.text(`Quote #: ${quotation.quote_number}`, 20, 50);
-    doc.text(`Date: ${new Date(quotation.created_at).toLocaleDateString()}`, 20, 60);
-    
-    if (quotation.valid_until) {
-      doc.text(`Valid Until: ${new Date(quotation.valid_until).toLocaleDateString()}`, 20, 70);
+    try {
+      const doc = generateProfessionalQuotePDF(quotation);
+      doc.save(`quotation-${quotation.quote_number}.pdf`);
+      
+      toast({
+        title: "Success",
+        description: "Professional PDF downloaded successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF",
+        variant: "destructive",
+      });
     }
-    
-    // Title
-    doc.setFontSize(16);
-    doc.text(quotation.title, 20, 90);
-    
-    // Description
-    if (quotation.description) {
-      doc.setFontSize(12);
-      const splitDescription = doc.splitTextToSize(quotation.description, 170);
-      doc.text(splitDescription, 20, 110);
-    }
-    
-    // Amount
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    const yPosition = quotation.description ? 140 : 120;
-    doc.text(`Total Amount: ${quotation.currency} ${quotation.amount.toLocaleString()}`, 20, yPosition);
-    
-    // Footer
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text('Thank you for your business!', 20, 270);
-    doc.text('If you have any questions, please don\'t hesitate to contact us.', 20, 280);
-    
-    // Save the PDF
-    doc.save(`quotation-${quotation.quote_number}.pdf`);
-    
-    toast({
-      title: "Success",
-      description: "PDF downloaded successfully",
-    });
   };
 
-  const sendEmail = (quotation: Quotation) => {
-    // For now, just show a success message
-    // In a real app, this would integrate with an email service
-    toast({
-      title: "Email Sent",
-      description: `Quotation ${quotation.quote_number} has been sent via email`,
-    });
+  const sendEmail = async (quotation: Quotation) => {
+    if (!emailData.customerEmail || !emailData.customerName) {
+      toast({
+        title: "Error",
+        description: "Please provide customer email and name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Generate PDF as base64 for email attachment
+      const doc = generateProfessionalQuotePDF(quotation);
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+
+      const { data, error } = await supabase.functions.invoke('send-quotation-email', {
+        body: {
+          to: emailData.customerEmail,
+          customerName: emailData.customerName,
+          quotationData: quotation,
+          pdfBase64: pdfBase64,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email Sent Successfully",
+        description: `Professional quotation sent to ${emailData.customerEmail}`,
+      });
+
+      setEmailDialog({ open: false, quotation: null });
+      setEmailData({ customerEmail: '', customerName: '' });
+    } catch (error) {
+      console.error('Email sending error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send email. Please check your SMTP configuration.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openEmailDialog = (quotation: Quotation) => {
+    setEmailDialog({ open: true, quotation });
+    setEmailData({ customerEmail: '', customerName: '' });
   };
 
   const getStatusColor = (status: string) => {
@@ -228,7 +244,7 @@ const QuotationsManager = () => {
                   <Download className="h-4 w-4 mr-2" />
                   Download PDF
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => sendEmail(quotation)}>
+                <Button size="sm" variant="outline" onClick={() => openEmailDialog(quotation)}>
                   <Send className="h-4 w-4 mr-2" />
                   Send Email
                 </Button>
@@ -237,6 +253,44 @@ const QuotationsManager = () => {
           </Card>
         ))}
       </div>
+
+      {/* Email Dialog */}
+      <Dialog open={emailDialog.open} onOpenChange={(open) => setEmailDialog({ open, quotation: null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send Quotation via Email</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="customerName">Customer Name</Label>
+              <Input
+                id="customerName"
+                value={emailData.customerName}
+                onChange={(e) => setEmailData(prev => ({ ...prev, customerName: e.target.value }))}
+                placeholder="Enter customer name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="customerEmail">Customer Email</Label>
+              <Input
+                id="customerEmail"
+                type="email"
+                value={emailData.customerEmail}
+                onChange={(e) => setEmailData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                placeholder="Enter customer email"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => emailDialog.quotation && sendEmail(emailDialog.quotation)}>
+                Send Email
+              </Button>
+              <Button variant="outline" onClick={() => setEmailDialog({ open: false, quotation: null })}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -90,8 +90,7 @@ const EstimateForm = () => {
     try {
       const { minCost, maxCost } = calculateEstimate();
 
-      // Use type assertion to bypass TypeScript errors temporarily
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('estimates')
         .insert({
           name: formData.name,
@@ -125,6 +124,7 @@ const EstimateForm = () => {
         description: '',
       });
     } catch (error) {
+      console.error('Error submitting estimate:', error);
       toast({
         title: "Error",
         description: "Failed to submit estimate request. Please try again.",
