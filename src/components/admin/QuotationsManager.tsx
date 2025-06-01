@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,14 +53,18 @@ const QuotationsManager = () => {
 
   const fetchQuotations = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('quotations')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching quotations:', error);
+        throw error;
+      }
       setQuotations(data || []);
     } catch (error) {
+      console.error('Exception in fetchQuotations:', error);
       toast({
         title: "Error",
         description: "Failed to fetch quotations",
@@ -74,17 +77,20 @@ const QuotationsManager = () => {
 
   const createQuotation = async (formData: any) => {
     try {
-      const { data: quoteNumber } = await (supabase as any)
+      const { data: quoteNumber } = await supabase
         .rpc('generate_quote_number');
 
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('quotations')
         .insert({
           quote_number: quoteNumber,
           ...formData,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating quotation:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -94,6 +100,7 @@ const QuotationsManager = () => {
       setIsCreateDialogOpen(false);
       fetchQuotations();
     } catch (error) {
+      console.error('Exception in createQuotation:', error);
       toast({
         title: "Error",
         description: "Failed to create quotation",

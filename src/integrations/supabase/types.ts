@@ -244,39 +244,105 @@ export type Database = {
       quotations: {
         Row: {
           amount: number
+          client_company: string | null
+          client_email: string | null
+          client_name: string | null
+          client_phone: string | null
           created_at: string
           currency: string
           description: string | null
+          discount_amount: number | null
           id: string
+          notes: string | null
+          payment_terms: string | null
+          project_timeline: string | null
           quote_number: string
           status: string
+          tax_rate: number | null
           title: string
           updated_at: string
           valid_until: string | null
         }
         Insert: {
           amount: number
+          client_company?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
           created_at?: string
           currency?: string
           description?: string | null
+          discount_amount?: number | null
           id?: string
+          notes?: string | null
+          payment_terms?: string | null
+          project_timeline?: string | null
           quote_number: string
           status?: string
+          tax_rate?: number | null
           title: string
           updated_at?: string
           valid_until?: string | null
         }
         Update: {
           amount?: number
+          client_company?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
           created_at?: string
           currency?: string
           description?: string | null
+          discount_amount?: number | null
           id?: string
+          notes?: string | null
+          payment_terms?: string | null
+          project_timeline?: string | null
           quote_number?: string
           status?: string
+          tax_rate?: number | null
           title?: string
           updated_at?: string
           valid_until?: string | null
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          body_code: string | null
+          created_at: string | null
+          footer_code: string | null
+          google_analytics_id: string | null
+          header_code: string | null
+          id: number
+          site_description: string | null
+          site_keywords: string | null
+          site_title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          body_code?: string | null
+          created_at?: string | null
+          footer_code?: string | null
+          google_analytics_id?: string | null
+          header_code?: string | null
+          id?: number
+          site_description?: string | null
+          site_keywords?: string | null
+          site_title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          body_code?: string | null
+          created_at?: string | null
+          footer_code?: string | null
+          google_analytics_id?: string | null
+          header_code?: string | null
+          id?: number
+          site_description?: string | null
+          site_keywords?: string | null
+          site_title?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

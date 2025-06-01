@@ -40,6 +40,7 @@ const ContactsManager = () => {
 
       if (error) {
         logger.error('Error fetching contacts:', error);
+        console.error('Error fetching contacts:', error);
         toast({
           title: "Error",
           description: "Failed to load contacts",
@@ -48,9 +49,11 @@ const ContactsManager = () => {
         return;
       }
 
+      console.log('Fetched contacts:', data);
       setContacts(data || []);
     } catch (error) {
       logger.error('Exception fetching contacts:', error);
+      console.error('Exception fetching contacts:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",

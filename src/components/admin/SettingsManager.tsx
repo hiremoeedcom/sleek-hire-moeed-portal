@@ -1,13 +1,14 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Code, BarChart } from 'lucide-react';
+import { Settings, Save, BarChart3, Code } from 'lucide-react';
 
 interface SiteSettings {
   google_analytics_id?: string;
@@ -21,188 +22,233 @@ interface SiteSettings {
 
 const SettingsManager = () => {
   const [settings, setSettings] = useState<SiteSettings>({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  const saveSettings = async () => {
-    setLoading(true);
-    try {
-      // TODO: Save to database once site_settings table is created
-      console.log('Settings to save:', settings);
-      
-      toast({
-        title: "Settings Saved",
-        description: "Your site settings have been updated successfully.",
-      });
+  useEffect(() => {
+    fetchSettings();
+  }, []);
 
-      // Update Google Analytics if provided
-      if (settings.google_analytics_id) {
-        updateGoogleAnalytics(settings.google_analytics_id);
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching settings:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load settings",
+          variant: "destructive",
+        });
+        return;
       }
 
+      if (data) {
+        setSettings(data);
+      }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save settings",
-        variant: "destructive",
-      });
+      console.error('Exception fetching settings:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateGoogleAnalytics = (analyticsId: string) => {
-    // Remove existing Google Analytics scripts
-    const existingScripts = document.querySelectorAll('script[src*="googletagmanager"]');
-    existingScripts.forEach(script => script.remove());
+  const saveSettings = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({
+          id: 1,
+          ...settings,
+          updated_at: new Date().toISOString()
+        });
 
-    // Add new Google Analytics
-    const script1 = document.createElement('script');
-    script1.async = true;
-    script1.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`;
-    document.head.appendChild(script1);
+      if (error) {
+        console.error('Error saving settings:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save settings",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    const script2 = document.createElement('script');
-    script2.innerHTML = `
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', '${analyticsId}');
-    `;
-    document.head.appendChild(script2);
+      toast({
+        title: "Success",
+        description: "Settings saved successfully",
+      });
+    } catch (error) {
+      console.error('Exception saving settings:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const updateSetting = (key: keyof SiteSettings, value: string) => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading settings...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Site Settings</h2>
-        <Button onClick={saveSettings} disabled={loading}>
-          {loading ? "Saving..." : "Save Settings"}
+        <div>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Settings className="h-6 w-6" />
+            Site Settings
+          </h2>
+          <p className="text-gray-600">Configure your website settings and tracking</p>
+        </div>
+        <Button onClick={saveSettings} disabled={saving}>
+          <Save className="mr-2 h-4 w-4" />
+          {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
 
-      <Tabs defaultValue="seo" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="seo">SEO Settings</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="code">Custom Code</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="seo">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                SEO Configuration
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="site-title">Site Title</Label>
-                <Input
-                  id="site-title"
-                  value={settings.site_title || ''}
-                  onChange={(e) => updateSetting('site_title', e.target.value)}
-                  placeholder="Your Site Title"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="site-description">Meta Description</Label>
-                <Textarea
-                  id="site-description"
-                  value={settings.site_description || ''}
-                  onChange={(e) => updateSetting('site_description', e.target.value)}
-                  placeholder="Brief description of your website"
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="site-keywords">Meta Keywords</Label>
-                <Input
-                  id="site-keywords"
-                  value={settings.site_keywords || ''}
-                  onChange={(e) => updateSetting('site_keywords', e.target.value)}
-                  placeholder="keyword1, keyword2, keyword3"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart className="h-5 w-5" />
-                Google Analytics
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="analytics-id">Google Analytics Measurement ID</Label>
-                <Input
-                  id="analytics-id"
-                  value={settings.google_analytics_id || ''}
-                  onChange={(e) => updateSetting('google_analytics_id', e.target.value)}
-                  placeholder="G-XXXXXXXXXX"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Enter your Google Analytics 4 Measurement ID (starts with G-)
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="code">
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Code className="h-5 w-5" />
-                  Custom Code Injection
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="header-code">Header Code (Before &lt;/head&gt;)</Label>
-                  <Textarea
-                    id="header-code"
-                    value={settings.header_code || ''}
-                    onChange={(e) => updateSetting('header_code', e.target.value)}
-                    placeholder="<!-- Custom scripts, meta tags, CSS -->"
-                    rows={4}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="body-code">Body Code (After &lt;body&gt;)</Label>
-                  <Textarea
-                    id="body-code"
-                    value={settings.body_code || ''}
-                    onChange={(e) => updateSetting('body_code', e.target.value)}
-                    placeholder="<!-- Custom scripts, tracking codes -->"
-                    rows={4}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="footer-code">Footer Code (Before &lt;/body&gt;)</Label>
-                  <Textarea
-                    id="footer-code"
-                    value={settings.footer_code || ''}
-                    onChange={(e) => updateSetting('footer_code', e.target.value)}
-                    placeholder="<!-- Custom scripts, analytics -->"
-                    rows={4}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+      {/* SEO Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>SEO & Meta Information</CardTitle>
+          <CardDescription>
+            Configure your website's meta information for better search engine visibility
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="site_title">Site Title</Label>
+            <Input
+              id="site_title"
+              value={settings.site_title || ''}
+              onChange={(e) => updateSetting('site_title', e.target.value)}
+              placeholder="Your website title"
+            />
           </div>
-        </TabsContent>
-      </Tabs>
+          <div className="space-y-2">
+            <Label htmlFor="site_description">Site Description</Label>
+            <Textarea
+              id="site_description"
+              value={settings.site_description || ''}
+              onChange={(e) => updateSetting('site_description', e.target.value)}
+              placeholder="Brief description of your website"
+              rows={3}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="site_keywords">Keywords</Label>
+            <Input
+              id="site_keywords"
+              value={settings.site_keywords || ''}
+              onChange={(e) => updateSetting('site_keywords', e.target.value)}
+              placeholder="keyword1, keyword2, keyword3"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Analytics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Analytics
+          </CardTitle>
+          <CardDescription>
+            Configure tracking and analytics for your website
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="google_analytics_id">Google Analytics ID</Label>
+            <Input
+              id="google_analytics_id"
+              value={settings.google_analytics_id || ''}
+              onChange={(e) => updateSetting('google_analytics_id', e.target.value)}
+              placeholder="G-XXXXXXXXXX"
+            />
+            <p className="text-sm text-gray-500">
+              Enter your Google Analytics 4 measurement ID
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Custom Code */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Code className="h-5 w-5" />
+            Custom Code
+          </CardTitle>
+          <CardDescription>
+            Add custom HTML, CSS, or JavaScript to your website
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="header_code">Header Code</Label>
+            <Textarea
+              id="header_code"
+              value={settings.header_code || ''}
+              onChange={(e) => updateSetting('header_code', e.target.value)}
+              placeholder="Code to be inserted in the <head> section"
+              rows={4}
+              className="font-mono text-sm"
+            />
+            <p className="text-sm text-gray-500">
+              This code will be inserted in the head section of your website
+            </p>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-2">
+            <Label htmlFor="body_code">Body Code</Label>
+            <Textarea
+              id="body_code"
+              value={settings.body_code || ''}
+              onChange={(e) => updateSetting('body_code', e.target.value)}
+              placeholder="Code to be inserted after <body> tag"
+              rows={4}
+              className="font-mono text-sm"
+            />
+            <p className="text-sm text-gray-500">
+              This code will be inserted at the beginning of the body section
+            </p>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-2">
+            <Label htmlFor="footer_code">Footer Code</Label>
+            <Textarea
+              id="footer_code"
+              value={settings.footer_code || ''}
+              onChange={(e) => updateSetting('footer_code', e.target.value)}
+              placeholder="Code to be inserted before </body> tag"
+              rows={4}
+              className="font-mono text-sm"
+            />
+            <p className="text-sm text-gray-500">
+              This code will be inserted at the end of the body section
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

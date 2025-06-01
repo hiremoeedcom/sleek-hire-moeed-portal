@@ -38,15 +38,19 @@ const EstimatesManager = () => {
 
   const fetchEstimates = async () => {
     try {
-      // Use type assertion to bypass TypeScript errors temporarily
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('estimates')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching estimates:', error);
+        throw error;
+      }
+      
       setEstimates(data || []);
     } catch (error) {
+      console.error('Exception in fetchEstimates:', error);
       toast({
         title: "Error",
         description: "Failed to fetch estimates",
@@ -59,13 +63,15 @@ const EstimatesManager = () => {
 
   const updateStatus = async (id: string, status: EstimateStatus) => {
     try {
-      // Use type assertion to bypass TypeScript errors temporarily
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('estimates')
         .update({ status })
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating status:', error);
+        throw error;
+      }
 
       setEstimates(estimates.map(estimate => 
         estimate.id === id ? { ...estimate, status } : estimate
@@ -76,6 +82,7 @@ const EstimatesManager = () => {
         description: "Estimate status updated",
       });
     } catch (error) {
+      console.error('Exception in updateStatus:', error);
       toast({
         title: "Error",
         description: "Failed to update status",
