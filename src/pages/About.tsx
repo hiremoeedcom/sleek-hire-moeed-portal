@@ -1,10 +1,10 @@
-
 import Navigation from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { Award, Users, Clock, Star, Coffee, Code2, Lightbulb, Target } from "lucide-react";
+import Footer from "@/components/Footer";
 
 const About = () => {
   const skills = [
@@ -343,6 +343,8 @@ const About = () => {
           </div>
         </div>
       </section>
+      
+      <Footer />
     </div>
   );
 };

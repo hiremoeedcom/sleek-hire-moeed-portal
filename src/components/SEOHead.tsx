@@ -17,7 +17,7 @@ interface SEOHeadProps {
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
-  title = "Moeed Shaikh - Full Stack Developer & Software Engineer",
+  title = "Abdul Moeed - Full Stack Developer & Software Engineer",
   description = "Professional full stack developer specializing in modern web applications, mobile apps, and custom software solutions. Available for hire worldwide.",
   keywords = "full stack developer, web development, mobile apps, software engineer, react, node.js, hire developer",
   image = "/og-image.jpg",
@@ -31,7 +31,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <title>{title}</title>
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
-      <meta name="author" content="Moeed Shaikh" />
+      <meta name="author" content="Abdul Moeed" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta name="robots" content="index, follow" />
       <meta name="language" content="English" />
@@ -43,7 +43,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta property="og:type" content={type} />
       <meta property="og:url" content={url} />
       <meta property="og:image" content={image} />
-      <meta property="og:site_name" content="Moeed Shaikh" />
+      <meta property="og:site_name" content="Abdul Moeed" />
       <meta property="og:locale" content="en_US" />
 
       {/* Twitter Card Meta Tags */}
@@ -63,7 +63,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Person",
-          "name": "Moeed Shaikh",
+          "name": "Abdul Moeed",
           "jobTitle": "Full Stack Developer",
           "description": "Professional full stack developer and software engineer",
           "url": "https://hiremoeed.com",

@@ -101,6 +101,12 @@ export const useAuth = () => {
       setIsAdmin(true);
       
       logger.info('Admin login successful', { email });
+      
+      // Auto-refresh page after successful login
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+      
       return { success: true };
     } catch (error) {
       logger.error('Login failed:', error);
@@ -116,6 +122,11 @@ export const useAuth = () => {
       setIsAdmin(false);
       setLoading(false);
       logger.info('Admin logout successful');
+      
+      // Auto-refresh page after logout
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     } catch (error) {
       logger.error('Logout error:', error);
     }

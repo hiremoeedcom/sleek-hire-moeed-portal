@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">Moeed Shaikh</h3>
+            <h3 className="text-xl font-bold">Abdul Moeed</h3>
             <p className="text-gray-300">
               Full Stack Developer & Software Engineer specializing in modern web applications.
             </p>
@@ -78,7 +78,7 @@ const Footer = () => {
         <div className="container-custom py-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © {currentYear} Moeed Shaikh. All rights reserved.
+              © {currentYear} Abdul Moeed. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">

@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ import {
   Shield,
   Zap
 } from "lucide-react";
+import Footer from "@/components/Footer";
 
 const Services = () => {
   const services = [
@@ -509,6 +509,8 @@ const Services = () => {
           </div>
         </div>
       </section>
+      
+      <Footer />
     </div>
   );
 };

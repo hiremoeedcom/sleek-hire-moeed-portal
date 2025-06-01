@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
-import { Plus, Mail, Phone, Building, User, Calendar, AlertCircle } from 'lucide-react';
+import { Plus, Mail, Phone, Building, User, Calendar, Eye } from 'lucide-react';
+import ContactDetailModal from './ContactDetailModal';
 
 interface Contact {
   id: string;
@@ -25,6 +25,8 @@ interface Contact {
 const ContactsManager = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -93,9 +95,17 @@ const ContactsManager = () => {
         title: "Success",
         description: "Contact status updated successfully",
       });
+
+      // Close modal after status update
+      setIsDetailModalOpen(false);
     } catch (error) {
       logger.error('Exception updating contact status:', error);
     }
+  };
+
+  const handleViewContact = (contact: Contact) => {
+    setSelectedContact(contact);
+    setIsDetailModalOpen(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -204,6 +214,15 @@ const ContactsManager = () => {
                 </div>
 
                 <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleViewContact(contact)}
+                    className="flex items-center gap-1"
+                  >
+                    <Eye className="h-3 w-3" />
+                    View Details
+                  </Button>
                   <Button 
                     size="sm" 
                     variant="outline"
@@ -212,28 +231,19 @@ const ContactsManager = () => {
                   >
                     Mark Contacted
                   </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => updateContactStatus(contact.id, 'qualified')}
-                    disabled={contact.status === 'qualified'}
-                  >
-                    Mark Qualified
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => updateContactStatus(contact.id, 'closed')}
-                    disabled={contact.status === 'closed'}
-                  >
-                    Close
-                  </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      <ContactDetailModal
+        contact={selectedContact}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        onStatusUpdate={updateContactStatus}
+      />
     </div>
   );
 };
