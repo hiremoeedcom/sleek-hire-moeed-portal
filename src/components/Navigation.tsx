@@ -2,6 +2,15 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -20,10 +29,17 @@ const Navigation = () => {
   const navItems = [
     { name: "Home", path: "/" },
     { name: "About", path: "/about" },
-    { name: "Services", path: "/services" },
     { name: "Portfolio", path: "/portfolio" },
     { name: "Estimate", path: "/estimate" },
     { name: "Contact", path: "/contact" },
+  ];
+
+  const serviceItems = [
+    { name: "Web Development", path: "/services/web-development", description: "Modern websites and web applications" },
+    { name: "Mobile Apps", path: "/services/mobile-apps", description: "iOS and Android mobile applications" },
+    { name: "UI/UX Design", path: "/services/ui-ux-design", description: "Beautiful and intuitive user interfaces" },
+    { name: "API Development", path: "/services/api-development", description: "Robust backend APIs and services" },
+    { name: "Consulting", path: "/services/consulting", description: "Technical guidance and support" },
   ];
 
   return (
@@ -54,6 +70,43 @@ const Navigation = () => {
                 {item.name}
               </Link>
             ))}
+            
+            {/* Services Dropdown */}
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-sm font-medium text-gray-600 hover:text-black bg-transparent hover:bg-transparent">
+                    Services
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <div className="grid w-[400px] gap-3 p-4">
+                      <Link
+                        to="/services"
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        <div className="text-sm font-medium leading-none">All Services</div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          View all available services and packages
+                        </p>
+                      </Link>
+                      {serviceItems.map((service) => (
+                        <NavigationMenuLink key={service.name} asChild>
+                          <Link
+                            to={service.path}
+                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          >
+                            <div className="text-sm font-medium leading-none">{service.name}</div>
+                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                              {service.description}
+                            </p>
+                          </Link>
+                        </NavigationMenuLink>
+                      ))}
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
           </div>
 
           {/* CTA Button */}
@@ -112,6 +165,30 @@ const Navigation = () => {
                 {item.name}
               </Link>
             ))}
+            
+            {/* Mobile Services Menu */}
+            <div className="space-y-2">
+              <Link
+                to="/services"
+                className="block text-lg font-medium text-gray-600 hover:text-black transition-colors duration-200"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Services
+              </Link>
+              <div className="pl-4 space-y-2">
+                {serviceItems.map((service) => (
+                  <Link
+                    key={service.name}
+                    to={service.path}
+                    className="block text-sm text-gray-500 hover:text-black transition-colors duration-200"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {service.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            
             <Button 
               asChild 
               className="w-full bg-black text-white hover:bg-gray-800"

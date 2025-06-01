@@ -44,11 +44,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Services</h4>
             <ul className="space-y-2 text-gray-300">
-              <li>Web Development</li>
-              <li>Mobile Apps</li>
-              <li>UI/UX Design</li>
-              <li>API Development</li>
-              <li>Consulting</li>
+              <li><Link to="/services/web-development" className="hover:text-white transition-colors">Web Development</Link></li>
+              <li><Link to="/services/mobile-apps" className="hover:text-white transition-colors">Mobile Apps</Link></li>
+              <li><Link to="/services/ui-ux-design" className="hover:text-white transition-colors">UI/UX Design</Link></li>
+              <li><Link to="/services/api-development" className="hover:text-white transition-colors">API Development</Link></li>
+              <li><Link to="/services/consulting" className="hover:text-white transition-colors">Consulting</Link></li>
             </ul>
           </div>
 

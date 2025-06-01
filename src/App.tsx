@@ -13,6 +13,11 @@ import Estimate from "./pages/Estimate";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import WebDevelopment from "./pages/WebDevelopment";
+import MobileApps from "./pages/MobileApps";
+import UIUXDesign from "./pages/UIUXDesign";
+import APIDevelopment from "./pages/APIDeevelopment";
+import Consulting from "./pages/Consulting";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +39,11 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
+            <Route path="/services/web-development" element={<WebDevelopment />} />
+            <Route path="/services/mobile-apps" element={<MobileApps />} />
+            <Route path="/services/ui-ux-design" element={<UIUXDesign />} />
+            <Route path="/services/api-development" element={<APIDevelopment />} />
+            <Route path="/services/consulting" element={<Consulting />} />
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/estimate" element={<Estimate />} />
             <Route path="/contact" element={<Contact />} />
