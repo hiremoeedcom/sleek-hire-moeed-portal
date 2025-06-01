@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,42 @@ const ContactForm = () => {
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if user came from estimate page and prefill the form
+    const savedEstimate = localStorage.getItem('estimateData');
+    if (savedEstimate) {
+      try {
+        const estimateData = JSON.parse(savedEstimate);
+        setFormData(prev => ({
+          ...prev,
+          name: estimateData.name || '',
+          email: estimateData.email || '',
+          company: estimateData.company || '',
+          subject: `Project Estimate Follow-up - ${estimateData.projectType || 'Web Development'}`,
+          message: `Hi Moeed,
+
+I've submitted an estimate request for my ${estimateData.projectType || 'project'} with the following details:
+
+Project Type: ${estimateData.projectType || 'Not specified'}
+Budget Range: ${estimateData.budget || 'Not specified'}
+Timeline: ${estimateData.timeline || 'Not specified'}
+Features: ${estimateData.features?.join(', ') || 'None specified'}
+
+${estimateData.description ? `Project Description: ${estimateData.description}` : ''}
+
+${estimateData.estimate ? `Estimated Cost Range: $${estimateData.estimate.min?.toLocaleString()} - $${estimateData.estimate.max?.toLocaleString()}` : ''}
+
+I'd love to discuss this project further with you. When would be a good time for a call?
+
+Best regards,
+${estimateData.name || ''}`
+        }));
+      } catch (error) {
+        console.error('Error parsing estimate data:', error);
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +94,9 @@ const ContactForm = () => {
         subject: '',
         message: ''
       });
+
+      // Clear estimate data from localStorage after successful submission
+      localStorage.removeItem('estimateData');
 
     } catch (error) {
       console.error('Contact form error:', error);
