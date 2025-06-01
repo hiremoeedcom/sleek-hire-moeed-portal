@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">Abdul Moeed</h3>
+            <h3 className="text-xl font-bold">Hire Moeed</h3>
             <p className="text-gray-300">
               Full Stack Developer & Software Engineer specializing in modern web applications.
             </p>
