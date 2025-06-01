@@ -48,7 +48,15 @@ const EstimatesManager = () => {
         throw error;
       }
       
-      setEstimates(data || []);
+      // Cast the data to match our interface types
+      const formattedEstimates = (data || []).map(estimate => ({
+        ...estimate,
+        project_type: estimate.project_type as ProjectType,
+        status: estimate.status as EstimateStatus,
+        features: estimate.features || []
+      }));
+      
+      setEstimates(formattedEstimates);
     } catch (error) {
       console.error('Exception in fetchEstimates:', error);
       toast({
