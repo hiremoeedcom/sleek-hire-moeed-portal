@@ -1,0 +1,5 @@
+
+Contact: mailto:hello@hiremoeed.com
+Expires: 2025-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://hiremoeed.com/.well-known/security.txt

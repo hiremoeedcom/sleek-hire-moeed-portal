@@ -1,0 +1,16 @@
+
+/* TEAM */
+Developer: Abdul Moeed
+Contact: hello [at] hiremoeed.com
+Twitter: @hiremoeed
+Location: Available Worldwide
+
+/* THANKS */
+Built with: React, TypeScript, Tailwind CSS
+Hosting: Lovable Platform
+
+/* SITE */
+Last update: 2025/01/01
+Standards: HTML5, CSS3, ES6+
+Components: React, Vite
+Software: VS Code, Git
