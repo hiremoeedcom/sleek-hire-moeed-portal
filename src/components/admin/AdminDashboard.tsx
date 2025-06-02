@@ -7,7 +7,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/utils/logger';
 import AnalyticsOverview from './AnalyticsOverview';
 import ContactsManager from './ContactsManager';
-import EstimatesManager from './EstimatesManager';
 import ProjectsManager from './ProjectsManager';
 import TasksManager from './TasksManager';
 import QuotationsManager from './QuotationsManager';
@@ -42,10 +41,9 @@ const AdminDashboard = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="contacts">Contacts</TabsTrigger>
-            <TabsTrigger value="estimates">Estimates</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="quotations">Quotations</TabsTrigger>
@@ -59,10 +57,6 @@ const AdminDashboard = () => {
 
           <TabsContent value="contacts">
             <ContactsManager />
-          </TabsContent>
-
-          <TabsContent value="estimates">
-            <EstimatesManager />
           </TabsContent>
 
           <TabsContent value="projects">

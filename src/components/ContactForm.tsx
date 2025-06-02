@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Send } from 'lucide-react';
+import { Loader2, Send, Mail, Phone, MapPin, MessageSquare } from 'lucide-react';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -51,8 +51,12 @@ I'd love to discuss this project further with you. When would be a good time for
 Best regards,
 ${estimateData.name || ''}`
         }));
+        
+        // Clear the estimate data after using it
+        localStorage.removeItem('estimateData');
       } catch (error) {
         console.error('Error parsing estimate data:', error);
+        localStorage.removeItem('estimateData');
       }
     }
   }, []);
@@ -95,9 +99,6 @@ ${estimateData.name || ''}`
         message: ''
       });
 
-      // Clear estimate data from localStorage after successful submission
-      localStorage.removeItem('estimateData');
-
     } catch (error) {
       console.error('Contact form error:', error);
       toast({
@@ -118,114 +119,184 @@ ${estimateData.name || ''}`
   };
 
   return (
-    <Card className="animate-slide-up">
-      <CardHeader>
-        <CardTitle className="text-2xl">Send Me a Message</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-4">
+    <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-12 items-start">
+      {/* Contact Information */}
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
+          <p className="text-gray-600 text-lg">
+            Ready to start your project? Have questions? I'd love to hear from you. 
+            Let's discuss how I can help bring your ideas to life.
+          </p>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex items-start space-x-4">
+            <div className="bg-blue-100 p-3 rounded-lg">
+              <Mail className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Email</h3>
+              <p className="text-gray-600">hello@hiremoeed.com</p>
+              <p className="text-sm text-gray-500 mt-1">I'll respond within 24 hours</p>
+            </div>
+          </div>
+
+          <div className="flex items-start space-x-4">
+            <div className="bg-green-100 p-3 rounded-lg">
+              <Phone className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Phone</h3>
+              <p className="text-gray-600">Available upon request</p>
+              <p className="text-sm text-gray-500 mt-1">Let's schedule a call to discuss your project</p>
+            </div>
+          </div>
+
+          <div className="flex items-start space-x-4">
+            <div className="bg-purple-100 p-3 rounded-lg">
+              <MapPin className="h-6 w-6 text-purple-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Location</h3>
+              <p className="text-gray-600">Remote Worldwide</p>
+              <p className="text-sm text-gray-500 mt-1">Working with clients across all time zones</p>
+            </div>
+          </div>
+
+          <div className="flex items-start space-x-4">
+            <div className="bg-orange-100 p-3 rounded-lg">
+              <MessageSquare className="h-6 w-6 text-orange-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Response Time</h3>
+              <p className="text-gray-600">Within 24 hours</p>
+              <p className="text-sm text-gray-500 mt-1">Usually much faster during business hours</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg">
+          <h3 className="font-semibold text-lg mb-2">Why Work With Me?</h3>
+          <ul className="space-y-2 text-sm text-gray-600">
+            <li>• Clear communication throughout the project</li>
+            <li>• Modern, scalable solutions built to last</li>
+            <li>• Competitive pricing with transparent quotes</li>
+            <li>• Post-launch support and maintenance</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Contact Form */}
+      <Card className="animate-fade-in">
+        <CardHeader>
+          <CardTitle className="text-2xl">Send Me a Message</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name *</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                  placeholder="Your full name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                  placeholder="your.email@example.com"
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  disabled={loading}
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="company">Company</Label>
+                <Input
+                  id="company"
+                  name="company"
+                  value={formData.company}
+                  onChange={handleChange}
+                  disabled={loading}
+                  placeholder="Your company name"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="subject">Subject *</Label>
               <Input
-                id="name"
-                name="name"
-                value={formData.name}
+                id="subject"
+                name="subject"
+                value={formData.subject}
                 onChange={handleChange}
                 required
                 disabled={loading}
-                placeholder="Your full name"
+                placeholder="What's this about?"
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
+              <Label htmlFor="message">Message *</Label>
+              <Textarea
+                id="message"
+                name="message"
+                value={formData.message}
                 onChange={handleChange}
                 required
                 disabled={loading}
-                placeholder="your.email@example.com"
+                placeholder="Tell me about your project, timeline, and requirements..."
+                className="min-h-[120px]"
               />
             </div>
-          </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                disabled={loading}
-                placeholder="+1 (555) 123-4567"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="company">Company</Label>
-              <Input
-                id="company"
-                name="company"
-                value={formData.company}
-                onChange={handleChange}
-                disabled={loading}
-                placeholder="Your company name"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="subject">Subject *</Label>
-            <Input
-              id="subject"
-              name="subject"
-              value={formData.subject}
-              onChange={handleChange}
-              required
+            <Button 
+              type="submit" 
               disabled={loading}
-              placeholder="What's this about?"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="message">Message *</Label>
-            <Textarea
-              id="message"
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              required
-              disabled={loading}
-              placeholder="Tell me about your project, timeline, and requirements..."
-              className="min-h-[120px]"
-            />
-          </div>
-
-          <Button 
-            type="submit" 
-            disabled={loading}
-            className="w-full"
-            size="lg"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
-              </>
-            ) : (
-              <>
-                <Send className="mr-2 h-4 w-4" />
-                Send Message
-              </>
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+              className="w-full"
+              size="lg"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Send Message
+                </>
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
