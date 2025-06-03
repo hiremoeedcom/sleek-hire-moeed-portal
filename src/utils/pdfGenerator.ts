@@ -23,275 +23,283 @@ interface QuotationData {
 }
 
 export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
-  const doc = new jsPDF();
+  const doc = new jsPDF('p', 'mm', 'a4');
   
-  // Professional color scheme
-  const primaryColor = [25, 44, 71]; // Navy blue
-  const accentColor = [59, 130, 246]; // Blue
-  const lightGray = [156, 163, 175];
-  const darkGray = [75, 85, 99];
+  // Professional color palette
+  const primary = '#1e293b';     // Slate 800
+  const secondary = '#475569';   // Slate 600
+  const accent = '#3b82f6';      // Blue 500
+  const light = '#f8fafc';       // Slate 50
+  const border = '#e2e8f0';      // Slate 200
+  const success = '#059669';     // Green 600
   
-  let yPosition = 20;
+  // A4 dimensions: 210mm x 297mm
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const margin = 20;
+  const contentWidth = pageWidth - (margin * 2);
   
-  // 1. Header Section
-  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-  doc.rect(0, 0, 210, 50, 'F');
+  // Helper function to convert hex to RGB
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 0, g: 0, b: 0 };
+  };
   
-  // Company name and logo area
+  let y = 25;
+  
+  // ===== HEADER SECTION =====
+  // Company logo placeholder (you can replace with actual logo)
+  doc.setFillColor(hexToRgb(accent).r, hexToRgb(accent).g, hexToRgb(accent).b);
+  doc.circle(35, 35, 8, 'F');
   doc.setTextColor(255, 255, 255);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('MS', 35, 38, { align: 'center' });
+  
+  // Company details
+  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Your Website', 50, 32);
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+  doc.text('Professional Web Solutions', 50, 38);
+  doc.text('hello@yourwebsite.com', 50, 44);
+  doc.text('+1 (555) 123-4567', 50, 50);
+  
+  // QUOTATION title and details (right side)
   doc.setFontSize(28);
   doc.setFont('helvetica', 'bold');
-  doc.text('Moeed Shaikh', 20, 25);
+  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+  doc.text('QUOTATION', pageWidth - margin, 35, { align: 'right' });
   
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Full Stack Developer & Software Engineer', 20, 35);
+  // Quote info box
+  const infoBoxX = pageWidth - margin - 60;
+  const infoBoxY = 45;
+  doc.setFillColor(hexToRgb(light).r, hexToRgb(light).g, hexToRgb(light).b);
+  doc.roundedRect(infoBoxX, infoBoxY, 60, 35, 2, 2, 'F');
+  doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
+  doc.roundedRect(infoBoxX, infoBoxY, 60, 35, 2, 2, 'S');
   
-  // QUOTATION title
-  doc.setFontSize(24);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('QUOTATION', 150, 30);
+  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+  doc.text('Quote #', infoBoxX + 3, infoBoxY + 8);
+  doc.text('Date', infoBoxX + 3, infoBoxY + 18);
+  doc.text('Valid Until', infoBoxX + 3, infoBoxY + 28);
   
-  yPosition = 60;
-  
-  // Quote details in header
-  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Quote Number:', 150, yPosition);
   doc.setFont('helvetica', 'normal');
-  doc.text(quotation.quote_number, 150, yPosition + 8);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.text('Quote Date:', 150, yPosition + 18);
-  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+  doc.text(quotation.quote_number, infoBoxX + 25, infoBoxY + 8);
   doc.text(new Date(quotation.created_at).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  }), 150, yPosition + 26);
+    month: 'short', day: '2-digit', year: 'numeric'
+  }), infoBoxX + 25, infoBoxY + 18);
   
-  if (quotation.valid_until) {
-    doc.setFont('helvetica', 'bold');
-    doc.text('Valid Until:', 150, yPosition + 36);
-    doc.setFont('helvetica', 'normal');
-    doc.text(new Date(quotation.valid_until).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    }), 150, yPosition + 44);
-  }
+  const validUntil = quotation.valid_until 
+    ? new Date(quotation.valid_until).toLocaleDateString('en-US', {
+        month: 'short', day: '2-digit', year: 'numeric'
+      })
+    : 'On request';
+  doc.text(validUntil, infoBoxX + 25, infoBoxY + 28);
   
-  yPosition = 90;
+  y = 90;
   
-  // 2. Sender Information
+  // ===== CLIENT INFORMATION =====
+  // Bill To section
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-  doc.text('FROM:', 20, yPosition);
+  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+  doc.text('BILL TO', margin, y);
   
-  doc.setFontSize(10);
+  y += 8;
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
-  doc.text('Moeed Shaikh', 20, yPosition + 10);
+  const clientName = quotation.client_company || quotation.client_name || 'Valued Client';
+  doc.text(clientName, margin, y);
   
-  doc.setFont('helvetica', 'normal');
-  doc.text('Full Stack Developer & Software Engineer', 20, yPosition + 18);
-  doc.text('Email: hello@hiremoeed.me', 20, yPosition + 26);
-  doc.text('Website: www.hiremoeed.me', 20, yPosition + 34);
-  doc.text('Available 24/7 - Response within 2 hours', 20, yPosition + 42);
-  
-  // 3. Client Information (Billed To)
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-  doc.text('TO:', 110, yPosition);
-  
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
-  if (quotation.client_company) {
-    doc.text(quotation.client_company, 110, yPosition + 10);
+  if (quotation.client_company && quotation.client_name) {
+    y += 6;
     doc.setFont('helvetica', 'normal');
-    doc.text(quotation.client_name || '', 110, yPosition + 18);
-  } else {
-    doc.text(quotation.client_name || 'Valued Client', 110, yPosition + 10);
+    doc.setFontSize(10);
+    doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+    doc.text(quotation.client_name, margin, y);
   }
   
-  doc.setFont('helvetica', 'normal');
   if (quotation.client_email) {
-    doc.text(`Email: ${quotation.client_email}`, 110, yPosition + 26);
+    y += 6;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(quotation.client_email, margin, y);
   }
+  
   if (quotation.client_phone) {
-    doc.text(`Phone: ${quotation.client_phone}`, 110, yPosition + 34);
+    y += 6;
+    doc.text(quotation.client_phone, margin, y);
   }
   
-  yPosition = 150;
+  y = Math.max(y, 125);
+  y += 15;
   
-  // 4. Project Title
+  // ===== PROJECT DETAILS =====
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
-  doc.text('PROJECT: ' + quotation.title.toUpperCase(), 20, yPosition);
+  doc.setTextColor(hexToRgb(accent).r, hexToRgb(accent).g, hexToRgb(accent).b);
+  doc.text('PROJECT DETAILS', margin, y);
   
-  yPosition += 15;
+  y += 10;
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+  doc.text(quotation.title, margin, y);
   
-  // Project Description
   if (quotation.description) {
+    y += 8;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
-    const splitDescription = doc.splitTextToSize(quotation.description, 170);
-    doc.text(splitDescription, 20, yPosition);
-    yPosition += splitDescription.length * 5 + 10;
+    doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+    const descLines = doc.splitTextToSize(quotation.description, contentWidth * 0.7);
+    doc.text(descLines, margin, y);
+    y += descLines.length * 5;
   }
   
-  // 5. Itemized Services Table
-  yPosition += 5;
-  doc.setFillColor(248, 250, 252);
-  doc.rect(20, yPosition, 170, 8, 'F');
+  y += 15;
   
-  // Table headers
+  // ===== SERVICES TABLE =====
+  const tableY = y;
+  const tableHeight = 40;
+  
+  // Table header
+  doc.setFillColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+  doc.rect(margin, tableY, contentWidth, 12, 'F');
+  
+  doc.setTextColor(255, 255, 255);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
-  doc.text('DESCRIPTION', 25, yPosition + 5);
-  doc.text('QTY', 120, yPosition + 5);
-  doc.text('RATE', 140, yPosition + 5);
-  doc.text('TOTAL', 165, yPosition + 5);
+  doc.text('DESCRIPTION', margin + 5, tableY + 8);
+  doc.text('QTY', margin + contentWidth * 0.65, tableY + 8);
+  doc.text('RATE', margin + contentWidth * 0.75, tableY + 8);
+  doc.text('AMOUNT', margin + contentWidth * 0.85, tableY + 8);
   
-  yPosition += 8;
+  // Table content
+  doc.setFillColor(255, 255, 255);
+  doc.rect(margin, tableY + 12, contentWidth, 20, 'F');
+  doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
+  doc.rect(margin, tableY, contentWidth, 32, 'S');
   
-  // Table border
-  doc.setDrawColor(lightGray[0], lightGray[1], lightGray[2]);
-  doc.rect(20, yPosition - 8, 170, 20, 'S');
-  doc.line(115, yPosition - 8, 115, yPosition + 12);
-  doc.line(135, yPosition - 8, 135, yPosition + 12);
-  doc.line(155, yPosition - 8, 155, yPosition + 12);
+  // Vertical lines
+  doc.line(margin + contentWidth * 0.6, tableY, margin + contentWidth * 0.6, tableY + 32);
+  doc.line(margin + contentWidth * 0.7, tableY, margin + contentWidth * 0.7, tableY + 32);
+  doc.line(margin + contentWidth * 0.8, tableY, margin + contentWidth * 0.8, tableY + 32);
   
-  // Service item
+  // Horizontal line after header
+  doc.line(margin, tableY + 12, margin + contentWidth, tableY + 12);
+  
+  // Service details
+  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
-  doc.text(quotation.title, 25, yPosition + 5);
-  doc.text('1', 125, yPosition + 5);
-  doc.text(`${quotation.currency} ${quotation.amount.toLocaleString()}`, 140, yPosition + 5);
-  doc.text(`${quotation.currency} ${quotation.amount.toLocaleString()}`, 165, yPosition + 5);
+  doc.setFontSize(10);
+  doc.text(quotation.title, margin + 5, tableY + 22);
+  doc.text('1', margin + contentWidth * 0.65, tableY + 22);
+  doc.text(`${quotation.currency} ${quotation.amount.toLocaleString()}`, margin + contentWidth * 0.75, tableY + 22);
+  doc.text(`${quotation.currency} ${quotation.amount.toLocaleString()}`, margin + contentWidth * 0.85, tableY + 22);
   
-  yPosition += 20;
+  y = tableY + 45;
   
-  // 6. Subtotal, Taxes, and Discounts
+  // ===== TOTALS SECTION =====
+  const totalsX = margin + contentWidth * 0.6;
+  const totalsWidth = contentWidth * 0.4;
+  
   const subtotal = quotation.amount;
   const discount = quotation.discount_amount || 0;
   const taxRate = quotation.tax_rate || 0;
   const taxAmount = (subtotal - discount) * (taxRate / 100);
   const total = subtotal - discount + taxAmount;
   
-  // Calculation section
-  doc.setFillColor(248, 250, 252);
-  doc.rect(120, yPosition, 70, 40, 'F');
-  doc.setDrawColor(lightGray[0], lightGray[1], lightGray[2]);
-  doc.rect(120, yPosition, 70, 40, 'S');
+  // Totals background
+  doc.setFillColor(hexToRgb(light).r, hexToRgb(light).g, hexToRgb(light).b);
+  doc.rect(totalsX, y, totalsWidth, 35, 'F');
+  doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
+  doc.rect(totalsX, y, totalsWidth, 35, 'S');
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
+  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
   
-  // Subtotal
-  doc.text('Subtotal:', 125, yPosition + 8);
-  doc.text(`${quotation.currency} ${subtotal.toLocaleString()}`, 165, yPosition + 8);
+  let totalsY = y + 8;
+  doc.text('Subtotal:', totalsX + 5, totalsY);
+  doc.text(`${quotation.currency} ${subtotal.toLocaleString()}`, totalsX + totalsWidth - 5, totalsY, { align: 'right' });
   
-  // Discount
   if (discount > 0) {
-    doc.text('Discount:', 125, yPosition + 16);
-    doc.text(`-${quotation.currency} ${discount.toLocaleString()}`, 165, yPosition + 16);
+    totalsY += 6;
+    doc.text('Discount:', totalsX + 5, totalsY);
+    doc.text(`-${quotation.currency} ${discount.toLocaleString()}`, totalsX + totalsWidth - 5, totalsY, { align: 'right' });
   }
   
-  // Tax
   if (taxRate > 0) {
-    doc.text(`Tax (${taxRate}%):`, 125, yPosition + 24);
-    doc.text(`${quotation.currency} ${taxAmount.toLocaleString()}`, 165, yPosition + 24);
+    totalsY += 6;
+    doc.text(`Tax (${taxRate}%):`, totalsX + 5, totalsY);
+    doc.text(`${quotation.currency} ${taxAmount.toLocaleString()}`, totalsX + totalsWidth - 5, totalsY, { align: 'right' });
   }
   
-  // Total
+  // Total line
+  doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
+  doc.line(totalsX + 5, totalsY + 3, totalsX + totalsWidth - 5, totalsY + 3);
+  
+  totalsY += 8;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
-  doc.text('TOTAL:', 125, yPosition + 35);
-  doc.text(`${quotation.currency} ${total.toLocaleString()}`, 165, yPosition + 35);
+  doc.setTextColor(hexToRgb(success).r, hexToRgb(success).g, hexToRgb(success).b);
+  doc.text('TOTAL:', totalsX + 5, totalsY);
+  doc.text(`${quotation.currency} ${total.toLocaleString()}`, totalsX + totalsWidth - 5, totalsY, { align: 'right' });
   
-  yPosition += 50;
+  y += 50;
   
-  // 7. Payment Instructions
+  // ===== PAYMENT TERMS =====
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-  doc.text('PAYMENT INSTRUCTIONS', 20, yPosition);
+  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+  doc.text('PAYMENT TERMS', margin, y);
   
-  yPosition += 10;
+  y += 8;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
   
-  const paymentTerms = quotation.payment_terms || '50% payment required to commence work, remaining 50% due upon completion';
-  const splitPaymentTerms = doc.splitTextToSize(paymentTerms, 170);
-  doc.text(splitPaymentTerms, 20, yPosition);
-  yPosition += splitPaymentTerms.length * 5 + 5;
+  const paymentTerms = quotation.payment_terms || 'Payment due within 15 days of quote acceptance';
+  const paymentLines = doc.splitTextToSize(paymentTerms, contentWidth * 0.8);
+  doc.text(paymentLines, margin, y);
+  y += paymentLines.length * 5 + 5;
   
-  doc.text('• Payment Methods: Bank Transfer, PayPal, Stripe', 20, yPosition);
-  doc.text('• Currency: USD (unless otherwise specified)', 20, yPosition + 8);
-  doc.text('• Payment Terms: Due within 15 days of acceptance', 20, yPosition + 16);
+  doc.text('• Bank Transfer, PayPal, Stripe accepted', margin, y);
+  y += 5;
+  doc.text('• All amounts in USD unless specified', margin, y);
   
-  yPosition += 30;
+  y += 15;
   
-  // 8. Notes and Terms
-  if (yPosition > 240) {
-    doc.addPage();
-    yPosition = 20;
-  }
+  // ===== FOOTER =====
+  const footerY = pageHeight - 30;
   
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-  doc.text('TERMS & CONDITIONS', 20, yPosition);
-  
-  yPosition += 10;
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
-  
-  const terms = [
-    '• This quote is valid for 30 days from the date above',
-    '• All prices are in USD unless otherwise specified',
-    '• Additional features may incur extra charges and will be quoted separately',
-    '• Timeline estimates will be provided upon project approval',
-    '• Late payment fee of 2% per month may apply to overdue accounts',
-    '• Free initial consultation and project planning included'
-  ];
-  
-  terms.forEach((term, index) => {
-    doc.text(term, 20, yPosition + (index * 6));
-  });
-  
-  yPosition += terms.length * 6 + 10;
+  // Footer background
+  doc.setFillColor(hexToRgb(light).r, hexToRgb(light).g, hexToRgb(light).b);
+  doc.rect(0, footerY, pageWidth, 30, 'F');
   
   // Thank you message
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
-  doc.text('Thank you for considering our services!', 20, yPosition);
+  doc.setTextColor(hexToRgb(accent).r, hexToRgb(accent).g, hexToRgb(accent).b);
+  doc.text('Thank you for your business!', pageWidth / 2, footerY + 10, { align: 'center' });
   
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
-  doc.text('We look forward to working with you and bringing your vision to life.', 20, yPosition + 8);
-  
-  // Footer
-  const footerY = 280;
-  doc.setFillColor(248, 250, 252);
-  doc.rect(0, footerY, 210, 20, 'F');
-  
-  doc.setFontSize(8);
-  doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
-  doc.text('Moeed Shaikh | hello@hiremoeed.me | www.hiremoeed.me', 105, footerY + 10, { align: 'center' });
-  doc.text('Professional Development Services | Available 24/7', 105, footerY + 16, { align: 'center' });
+  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+  doc.text('This quotation is valid for 30 days from the date above.', pageWidth / 2, footerY + 18, { align: 'center' });
+  doc.text('For questions, contact us at hello@yourwebsite.com', pageWidth / 2, footerY + 24, { align: 'center' });
   
   return doc;
 };
