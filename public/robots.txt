@@ -20,7 +20,7 @@ Disallow: /admin
 Disallow: /api/
 Disallow: /*.json$
 
-Sitemap: https://hiremoeed.com/sitemap.xml
+Sitemap: https://hiremoeed.me/sitemap.xml
 
 # Crawl-delay for non-major bots
 User-agent: *

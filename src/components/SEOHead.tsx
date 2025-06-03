@@ -20,8 +20,8 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   title = "Hire Moeed - Professional Full Stack Developer & Software Engineer",
   description = "Hire Abdul Moeed for professional web development, mobile apps, UI/UX design, API development, and custom software solutions. Expert full stack developer available worldwide.",
   keywords = "hire full stack developer, web development services, mobile app development, UI UX design, API development, software engineer, react developer, node.js developer, hire moeed, abdul moeed",
-  image = "https://hiremoeed.com/lovable-uploads/f23285d7-3240-46fd-a294-3e5e897c9ae2.png",
-  url = "https://hiremoeed.com",
+  image = "https://hiremoeed.me/lovable-uploads/f23285d7-3240-46fd-a294-3e5e897c9ae2.png",
+  url = "https://hiremoeed.me",
   type = "website",
   customCode
 }) => {
@@ -79,9 +79,9 @@ const SEOHead: React.FC<SEOHeadProps> = ({
           "alternateName": "Hire Moeed",
           "jobTitle": "Full Stack Developer & Software Engineer",
           "description": "Professional full stack developer specializing in web development, mobile apps, UI/UX design, and custom software solutions",
-          "url": "https://hiremoeed.com",
-          "email": "hello@hiremoeed.com",
-          "image": "https://hiremoeed.com/lovable-uploads/f23285d7-3240-46fd-a294-3e5e897c9ae2.png",
+          "url": "https://hiremoeed.me",
+          "email": "hello@hiremoeed.me",
+          "image": "https://hiremoeed.me/lovable-uploads/f23285d7-3240-46fd-a294-3e5e897c9ae2.png",
           "sameAs": [
             "https://github.com/moeedshaikh",
             "https://linkedin.com/in/moeedshaikh",
@@ -172,12 +172,12 @@ const SEOHead: React.FC<SEOHeadProps> = ({
           "@type": "WebSite",
           "name": "Hire Moeed",
           "alternateName": "Abdul Moeed Portfolio",
-          "url": "https://hiremoeed.com",
+          "url": "https://hiremoeed.me",
           "description": "Professional full stack developer available for hire worldwide",
           "inLanguage": "en-US",
           "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://hiremoeed.com/search?q={search_term_string}",
+            "target": "https://hiremoeed.me/search?q={search_term_string}",
             "query-input": "required name=search_term_string"
           }
         })}
@@ -190,13 +190,13 @@ const SEOHead: React.FC<SEOHeadProps> = ({
           "@type": "ProfessionalService",
           "name": "Hire Moeed",
           "description": "Professional software development services",
-          "url": "https://hiremoeed.com",
-          "logo": "https://hiremoeed.com/lovable-uploads/f23285d7-3240-46fd-a294-3e5e897c9ae2.png",
+          "url": "https://hiremoeed.me",
+          "logo": "https://hiremoeed.me/lovable-uploads/f23285d7-3240-46fd-a294-3e5e897c9ae2.png",
           "contactPoint": {
             "@type": "ContactPoint",
             "telephone": "+1-XXX-XXX-XXXX",
             "contactType": "customer service",
-            "email": "hello@hiremoeed.com",
+            "email": "hello@hiremoeed.me",
             "availableLanguage": "English"
           },
           "founder": {
