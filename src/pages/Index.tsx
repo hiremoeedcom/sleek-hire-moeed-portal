@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import { CheckCircle, ArrowRight, Code, Smartphone, Globe, Database, Shield, Zap } from "lucide-react";
 
 const Index = () => {
@@ -370,54 +371,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-black text-white py-16">
-        <div className="container-custom">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h3 className="text-2xl font-bold mb-4">Hire Moeed</h3>
-              <p className="text-gray-300 mb-4">
-                Premium development services for modern businesses looking to make a digital impact.
-              </p>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">LinkedIn</a>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">GitHub</a>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">Twitter</a>
-              </div>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Services</h4>
-              <div className="space-y-2">
-                <Link to="/services" className="block text-gray-300 hover:text-white transition-colors">Web Development</Link>
-                <Link to="/services" className="block text-gray-300 hover:text-white transition-colors">Mobile Apps</Link>
-                <Link to="/services" className="block text-gray-300 hover:text-white transition-colors">Full-Stack Solutions</Link>
-                <Link to="/services" className="block text-gray-300 hover:text-white transition-colors">UI/UX Design</Link>
-              </div>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Company</h4>
-              <div className="space-y-2">
-                <Link to="/about" className="block text-gray-300 hover:text-white transition-colors">About</Link>
-                <Link to="/portfolio" className="block text-gray-300 hover:text-white transition-colors">Portfolio</Link>
-                <Link to="/contact" className="block text-gray-300 hover:text-white transition-colors">Contact</Link>
-                <Link to="/estimate" className="block text-gray-300 hover:text-white transition-colors">Get Estimate</Link>
-              </div>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
-              <div className="space-y-2 text-gray-300">
-                <p>hello@hiremoeed.com</p>
-                <p>Available 24/7</p>
-                <p>Response within 2 hours</p>
-                <p>Free initial consultation</p>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Hire Moeed. All rights reserved. | Privacy Policy | Terms of Service</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
