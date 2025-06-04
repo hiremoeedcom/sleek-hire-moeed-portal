@@ -26,11 +26,11 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   const doc = new jsPDF('p', 'mm', 'a4');
   
   // Professional color palette
-  const primary = '#0a3d62';        // Dark blue
-  const secondary = '#777777';      // Gray
-  const lightGray = '#f7f7f7';     // Light gray for table headers
-  const border = '#cccccc';        // Border color
-  const darkText = '#222222';      // Dark text
+  const primary = '#0a3d62';
+  const secondary = '#777777';
+  const lightGray = '#f7f7f7';
+  const border = '#cccccc';
+  const darkText = '#222222';
   
   // A4 dimensions
   const pageWidth = 210;
@@ -48,59 +48,64 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
     } : { r: 0, g: 0, b: 0 };
   };
   
-  let y = 40;
+  let y = 30;
   
   // ===== HEADER SECTION =====
   // Company name and details (left side)
   doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
-  doc.setFontSize(28);
+  doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
   doc.text('HireMoeed', margin, y);
   
-  y += 8;
-  doc.setFontSize(14);
+  y += 6;
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
   doc.text('Professional Development & Tech Solutions', margin, y);
   
-  y += 6;
-  doc.setFontSize(12);
+  y += 4;
+  doc.setFontSize(10);
   doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
   doc.text('Website: www.HireMoeed.me', margin, y);
   
-  y += 5;
+  y += 4;
   doc.text('Email: hello@hiremoeed.me', margin, y);
   
-  y += 5;
+  y += 4;
   doc.text('Phone: +1 (555) 123-4567', margin, y);
   
-  y += 5;
+  y += 4;
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
-  doc.text('Available Worldwide', margin, y);
+  doc.text('New York, NY, USA', margin, y);
   
   // Quote details (right side)
-  const rightColumnX = pageWidth - 80;
-  let rightY = 40;
+  const rightColumnX = pageWidth - 70;
+  let rightY = 30;
   
-  doc.setFontSize(14);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
   doc.text('Quotation #: ', rightColumnX, rightY);
   doc.setFont('helvetica', 'normal');
-  doc.text(quotation.quote_number, rightColumnX + 35, rightY);
+  doc.setFontSize(10);
+  doc.text(quotation.quote_number, rightColumnX + 28, rightY);
   
-  rightY += 8;
+  rightY += 5;
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.text('Date: ', rightColumnX, rightY);
   doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
   doc.text(new Date(quotation.created_at).toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric'
-  }), rightColumnX + 18, rightY);
+  }), rightColumnX + 15, rightY);
   
-  rightY += 8;
+  rightY += 5;
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.text('Valid Until: ', rightColumnX, rightY);
   doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
   const validUntil = quotation.valid_until 
     ? new Date(quotation.valid_until).toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric'
@@ -108,90 +113,90 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
     : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric'
       });
-  doc.text(validUntil, rightColumnX + 30, rightY);
+  doc.text(validUntil, rightColumnX + 25, rightY);
   
   // Header border line
-  y = Math.max(y, rightY) + 15;
+  y = Math.max(y, rightY) + 10;
   doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
-  doc.setLineWidth(2);
+  doc.setLineWidth(1.5);
   doc.line(margin, y, pageWidth - margin, y);
   
-  y += 20;
+  y += 15;
   
   // ===== CLIENT INFORMATION SECTION =====
-  doc.setFontSize(18);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
   doc.text('Client Information', margin, y);
   
   // Section underline
-  y += 3;
-  doc.setLineWidth(1);
-  doc.line(margin, y, margin + 50, y);
+  y += 2;
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, margin + 40, y);
   
-  y += 15;
+  y += 10;
   
   // Client details (left column)
-  doc.setFontSize(12);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text('Client:', margin, y);
   
-  y += 6;
+  y += 4;
   doc.setFont('helvetica', 'normal');
   const clientName = quotation.client_name || 'Valued Client';
   doc.text(clientName, margin, y);
   
   if (quotation.client_company) {
-    y += 5;
+    y += 4;
     doc.text(quotation.client_company, margin, y);
   }
   
   if (quotation.client_email) {
-    y += 5;
+    y += 4;
     doc.text(quotation.client_email, margin, y);
   }
   
   if (quotation.client_phone) {
-    y += 5;
+    y += 4;
     doc.text(quotation.client_phone, margin, y);
   }
   
   // Prepared by (right column)
-  const preparedByX = pageWidth - 100;
-  let preparedY = y - (quotation.client_phone ? 20 : 15);
+  const preparedByX = pageWidth - 80;
+  let preparedY = y - (quotation.client_phone ? 16 : 12);
   
   doc.setFont('helvetica', 'bold');
   doc.text('Prepared By:', preparedByX, preparedY);
   
-  preparedY += 6;
+  preparedY += 4;
   doc.setFont('helvetica', 'normal');
   doc.text('Moeed from HireMoeed', preparedByX, preparedY);
   
-  preparedY += 5;
+  preparedY += 4;
   doc.text('hello@hiremoeed.me', preparedByX, preparedY);
   
-  preparedY += 5;
+  preparedY += 4;
   doc.text('+1 (555) 123-4567', preparedByX, preparedY);
   
-  y = Math.max(y, preparedY) + 20;
+  y = Math.max(y, preparedY) + 15;
   
   // ===== QUOTATION BREAKDOWN SECTION =====
-  doc.setFontSize(18);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
   doc.text('Quotation Breakdown', margin, y);
   
   // Section underline
-  y += 3;
-  doc.setLineWidth(1);
-  doc.line(margin, y, margin + 60, y);
+  y += 2;
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, margin + 50, y);
   
-  y += 15;
+  y += 10;
   
   // Services table
   const tableStartY = y;
-  const rowHeight = 12;
-  const headerHeight = 15;
+  const rowHeight = 10;
+  const headerHeight = 12;
   
   // Table headers
   doc.setFillColor(hexToRgb(lightGray).r, hexToRgb(lightGray).g, hexToRgb(lightGray).b);
@@ -199,7 +204,7 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   
   // Header borders
   doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
-  doc.setLineWidth(1);
+  doc.setLineWidth(0.5);
   doc.rect(margin, tableStartY, contentWidth, headerHeight, 'S');
   
   // Column widths
@@ -214,17 +219,17 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   doc.line(margin + descWidth + hoursWidth + rateWidth, tableStartY, margin + descWidth + hoursWidth + rateWidth, tableStartY + headerHeight);
   
   // Header text
-  doc.setFontSize(12);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
-  doc.text('Description', margin + 5, tableStartY + 10);
-  doc.text('Hours', margin + descWidth + 5, tableStartY + 10);
-  doc.text('Rate', margin + descWidth + hoursWidth + 5, tableStartY + 10);
-  doc.text('Amount', margin + descWidth + hoursWidth + rateWidth + 5, tableStartY + 10);
+  doc.text('Description', margin + 3, tableStartY + 8);
+  doc.text('Hours', margin + descWidth + 3, tableStartY + 8);
+  doc.text('Rate', margin + descWidth + hoursWidth + 3, tableStartY + 8);
+  doc.text('Amount', margin + descWidth + hoursWidth + rateWidth + 3, tableStartY + 8);
   
   // Service row
   const serviceRowY = tableStartY + headerHeight;
-  const serviceRowHeight = 20;
+  const serviceRowHeight = 15;
   
   // Service row background and border
   doc.setFillColor(255, 255, 255);
@@ -237,24 +242,24 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   doc.line(margin + descWidth + hoursWidth + rateWidth, serviceRowY, margin + descWidth + hoursWidth + rateWidth, serviceRowY + serviceRowHeight);
   
   // Service details
-  doc.setFontSize(11);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
   
   // Split long title into multiple lines if needed
-  const titleLines = doc.splitTextToSize(quotation.title, descWidth - 10);
-  doc.text(titleLines.slice(0, 2), margin + 5, serviceRowY + 8);
+  const titleLines = doc.splitTextToSize(quotation.title, descWidth - 6);
+  doc.text(titleLines.slice(0, 2), margin + 3, serviceRowY + 6);
   
   if (quotation.description && titleLines.length === 1) {
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
-    const descLines = doc.splitTextToSize(quotation.description, descWidth - 10);
-    doc.text(descLines.slice(0, 1), margin + 5, serviceRowY + 14);
+    const descLines = doc.splitTextToSize(quotation.description, descWidth - 6);
+    doc.text(descLines.slice(0, 1), margin + 3, serviceRowY + 10);
   }
   
   // Hours, Rate, Amount
-  doc.setFontSize(11);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
   
@@ -262,15 +267,15 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   const estimatedHours = Math.ceil(quotation.amount / 75);
   const hourlyRate = Math.round(quotation.amount / estimatedHours);
   
-  doc.text(estimatedHours.toString(), margin + descWidth + 15, serviceRowY + 12, { align: 'center' });
-  doc.text(`$${hourlyRate}.00`, margin + descWidth + hoursWidth + 15, serviceRowY + 12, { align: 'center' });
-  doc.text(`$${quotation.amount.toLocaleString()}.00`, margin + descWidth + hoursWidth + rateWidth + amountWidth - 5, serviceRowY + 12, { align: 'right' });
+  doc.text(estimatedHours.toString(), margin + descWidth + 10, serviceRowY + 8, { align: 'center' });
+  doc.text(`$${hourlyRate}.00`, margin + descWidth + hoursWidth + 10, serviceRowY + 8, { align: 'center' });
+  doc.text(`$${quotation.amount.toLocaleString()}.00`, margin + descWidth + hoursWidth + rateWidth + amountWidth - 3, serviceRowY + 8, { align: 'right' });
   
-  y = serviceRowY + serviceRowHeight + 15;
+  y = serviceRowY + serviceRowHeight + 10;
   
   // ===== TOTALS SECTION =====
-  const totalsStartX = margin + contentWidth - 100;
-  const totalsWidth = 100;
+  const totalsStartX = margin + contentWidth - 80;
+  const totalsWidth = 80;
   
   const subtotal = quotation.amount;
   const taxRate = quotation.tax_rate || 8.5;
@@ -286,35 +291,35 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   ];
   
   totalsData.forEach((item, index) => {
-    const rowY = y + (index * 8);
+    const rowY = y + (index * 6);
     
-    doc.setFontSize(12);
+    doc.setFontSize(10);
     doc.setFont('helvetica', item.isBold ? 'bold' : 'normal');
     doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
     doc.text(item.label, totalsStartX, rowY);
-    doc.text(item.value, totalsStartX + totalsWidth - 5, rowY, { align: 'right' });
+    doc.text(item.value, totalsStartX + totalsWidth - 3, rowY, { align: 'right' });
     
     // Add border for total row
     if (item.isBold) {
       doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
-      doc.line(totalsStartX, rowY + 2, totalsStartX + totalsWidth, rowY + 2);
+      doc.line(totalsStartX, rowY + 1, totalsStartX + totalsWidth, rowY + 1);
     }
   });
   
-  y += 40;
+  y += 30;
   
   // ===== NOTES SECTION =====
-  doc.setFontSize(18);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
   doc.text('Notes', margin, y);
   
-  y += 3;
-  doc.setLineWidth(1);
-  doc.line(margin, y, margin + 25, y);
+  y += 2;
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, margin + 20, y);
   
-  y += 10;
-  doc.setFontSize(13);
+  y += 8;
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   
   const notesText = quotation.notes || 
@@ -323,20 +328,20 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   const notesLines = doc.splitTextToSize(notesText, contentWidth);
   doc.text(notesLines, margin, y);
   
-  y += (notesLines.length * 5) + 15;
+  y += (notesLines.length * 4) + 10;
   
   // ===== TERMS & CONDITIONS SECTION =====
-  doc.setFontSize(18);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
   doc.text('Terms & Conditions', margin, y);
   
-  y += 3;
-  doc.setLineWidth(1);
-  doc.line(margin, y, margin + 65, y);
+  y += 2;
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, margin + 50, y);
   
-  y += 10;
-  doc.setFontSize(13);
+  y += 8;
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   
   const paymentTerms = quotation.payment_terms || '50% payment due upon project commencement, 50% upon final delivery.';
@@ -351,33 +356,33 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   
   terms.forEach((term, index) => {
     doc.text(`• ${term}`, margin, y);
-    y += 7;
+    y += 5;
   });
   
-  y += 20;
+  y += 15;
   
   // ===== SIGNATURE SECTION =====
-  const sigStartY = Math.min(y, pageHeight - 80);
+  const sigStartY = Math.min(y, pageHeight - 60);
   
   // Signature lines
   const sig1X = margin;
-  const sig2X = pageWidth - margin - 80;
-  const sigWidth = 80;
+  const sig2X = pageWidth - margin - 60;
+  const sigWidth = 60;
   
   doc.setDrawColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
-  doc.setLineWidth(1);
+  doc.setLineWidth(0.5);
   doc.line(sig1X, sigStartY, sig1X + sigWidth, sigStartY);
   doc.line(sig2X, sigStartY, sig2X + sigWidth, sigStartY);
   
-  doc.setFontSize(12);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text('Authorized Signature – HireMoeed', sig1X + (sigWidth / 2), sigStartY + 8, { align: 'center' });
-  doc.text('Client Signature', sig2X + (sigWidth / 2), sigStartY + 8, { align: 'center' });
+  doc.text('Authorized Signature – HireMoeed', sig1X + (sigWidth / 2), sigStartY + 6, { align: 'center' });
+  doc.text('Client Signature', sig2X + (sigWidth / 2), sigStartY + 6, { align: 'center' });
   
   // ===== FOOTER =====
-  const footerY = pageHeight - 30;
+  const footerY = pageHeight - 25;
   
-  doc.setFontSize(12);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
   
@@ -385,7 +390,7 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   const footerText2 = 'Visit us at www.HireMoeed.me or email us at hello@hiremoeed.me';
   
   doc.text(footerText1, pageWidth / 2, footerY, { align: 'center' });
-  doc.text(footerText2, pageWidth / 2, footerY + 6, { align: 'center' });
+  doc.text(footerText2, pageWidth / 2, footerY + 4, { align: 'center' });
   
   return doc;
 };
