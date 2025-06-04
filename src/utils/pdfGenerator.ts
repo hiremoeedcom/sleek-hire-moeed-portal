@@ -58,20 +58,20 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('MS', 35, 38, { align: 'center' });
+  doc.text('HM', 35, 38, { align: 'center' });
   
   // Company details
   doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
-  doc.text('Your Website', 50, 32);
+  doc.text('Hire Moeed', 50, 32);
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
   doc.text('Professional Web Solutions', 50, 38);
-  doc.text('hello@yourwebsite.com', 50, 44);
-  doc.text('+1 (555) 123-4567', 50, 50);
+  doc.text('hello@hiremoeed.me', 50, 44);
+  doc.text('Available Worldwide', 50, 50);
   
   // QUOTATION title and details (right side)
   doc.setFontSize(28);
@@ -299,7 +299,7 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
   doc.text('This quotation is valid for 30 days from the date above.', pageWidth / 2, footerY + 18, { align: 'center' });
-  doc.text('For questions, contact us at hello@yourwebsite.com', pageWidth / 2, footerY + 24, { align: 'center' });
+  doc.text('For questions, contact us at hello@hiremoeed.me', pageWidth / 2, footerY + 24, { align: 'center' });
   
   return doc;
 };
