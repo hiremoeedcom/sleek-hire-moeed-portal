@@ -25,15 +25,15 @@ interface QuotationData {
 export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   const doc = new jsPDF('p', 'mm', 'a4');
   
-  // Professional color palette
-  const primary = '#1e293b';     // Slate 800
-  const secondary = '#475569';   // Slate 600
-  const accent = '#3b82f6';      // Blue 500
-  const light = '#f8fafc';       // Slate 50
-  const border = '#e2e8f0';      // Slate 200
-  const success = '#059669';     // Green 600
+  // Professional color palette inspired by Nexcess design
+  const primary = '#2c3e50';       // Dark blue-gray
+  const secondary = '#7f8c8d';     // Medium gray
+  const accent = '#3498db';        // Professional blue
+  const lightGray = '#f8f9fa';     // Very light gray
+  const border = '#e9ecef';        // Light border
+  const darkText = '#2c3e50';      // Dark text
   
-  // A4 dimensions: 210mm x 297mm
+  // A4 dimensions
   const pageWidth = 210;
   const pageHeight = 297;
   const margin = 20;
@@ -51,255 +51,308 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   
   let y = 25;
   
-  // ===== HEADER SECTION =====
-  // Company logo placeholder (you can replace with actual logo)
+  // ===== HEADER WITH BRANDING =====
+  // Company logo circle
   doc.setFillColor(hexToRgb(accent).r, hexToRgb(accent).g, hexToRgb(accent).b);
-  doc.circle(35, 35, 8, 'F');
+  doc.circle(30, 35, 8, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(12);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text('HM', 35, 38, { align: 'center' });
+  doc.text('HM', 30, 38, { align: 'center' });
   
-  // Company details
+  // Company name and tagline
   doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
-  doc.setFontSize(20);
+  doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
-  doc.text('Hire Moeed', 50, 32);
-  
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
-  doc.text('Professional Web Solutions', 50, 38);
-  doc.text('hello@hiremoeed.me', 50, 44);
-  doc.text('Available Worldwide', 50, 50);
-  
-  // QUOTATION title and details (right side)
-  doc.setFontSize(28);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
-  doc.text('QUOTATION', pageWidth - margin, 35, { align: 'right' });
-  
-  // Quote info box
-  const infoBoxX = pageWidth - margin - 60;
-  const infoBoxY = 45;
-  doc.setFillColor(hexToRgb(light).r, hexToRgb(light).g, hexToRgb(light).b);
-  doc.roundedRect(infoBoxX, infoBoxY, 60, 35, 2, 2, 'F');
-  doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
-  doc.roundedRect(infoBoxX, infoBoxY, 60, 35, 2, 2, 'S');
+  doc.text('Hire Moeed', 45, 32);
   
   doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
-  doc.text('Quote #', infoBoxX + 3, infoBoxY + 8);
-  doc.text('Date', infoBoxX + 3, infoBoxY + 18);
-  doc.text('Valid Until', infoBoxX + 3, infoBoxY + 28);
-  
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
-  doc.text(quotation.quote_number, infoBoxX + 25, infoBoxY + 8);
-  doc.text(new Date(quotation.created_at).toLocaleDateString('en-US', {
-    month: 'short', day: '2-digit', year: 'numeric'
-  }), infoBoxX + 25, infoBoxY + 18);
+  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+  doc.text('A DIGITAL WEB BRAND', 45, 38);
   
-  const validUntil = quotation.valid_until 
-    ? new Date(quotation.valid_until).toLocaleDateString('en-US', {
-        month: 'short', day: '2-digit', year: 'numeric'
-      })
-    : 'On request';
-  doc.text(validUntil, infoBoxX + 25, infoBoxY + 28);
+  // Contact information (top right)
+  doc.setFontSize(8);
+  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+  doc.text('hello@hiremoeed.me', pageWidth - margin, 25, { align: 'right' });
+  doc.text('Available Worldwide', pageWidth - margin, 30, { align: 'right' });
+  doc.text('Professional Web Solutions', pageWidth - margin, 35, { align: 'right' });
   
-  y = 90;
+  y = 60;
   
-  // ===== CLIENT INFORMATION =====
-  // Bill To section
-  doc.setFontSize(12);
+  // ===== BILL TO SECTION =====
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
-  doc.text('BILL TO', margin, y);
+  doc.text('Bill To', margin, y);
   
   y += 8;
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  const clientName = quotation.client_company || quotation.client_name || 'Valued Client';
-  doc.text(clientName, margin, y);
+  const clientDisplay = quotation.client_company || quotation.client_name || 'Valued Client';
+  doc.text(clientDisplay, margin, y);
   
   if (quotation.client_company && quotation.client_name) {
     y += 6;
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
     doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
     doc.text(quotation.client_name, margin, y);
   }
   
   if (quotation.client_email) {
-    y += 6;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
+    y += 5;
     doc.text(quotation.client_email, margin, y);
   }
   
   if (quotation.client_phone) {
-    y += 6;
+    y += 5;
     doc.text(quotation.client_phone, margin, y);
   }
   
-  y = Math.max(y, 125);
-  y += 15;
+  // ===== QUOTE INFO BOX (RIGHT SIDE) =====
+  const infoBoxX = pageWidth - margin - 70;
+  const infoBoxY = 60;
+  const infoBoxWidth = 70;
+  const infoBoxHeight = 45;
   
-  // ===== PROJECT DETAILS =====
+  // Info box background
+  doc.setFillColor(hexToRgb(lightGray).r, hexToRgb(lightGray).g, hexToRgb(lightGray).b);
+  doc.rect(infoBoxX, infoBoxY, infoBoxWidth, infoBoxHeight, 'F');
+  
+  // Account ID label
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+  doc.text('Account ID: HM2024', infoBoxX + 5, infoBoxY + 8);
+  
+  // Quote number
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(hexToRgb(accent).r, hexToRgb(accent).g, hexToRgb(accent).b);
-  doc.text('PROJECT DETAILS', margin, y);
-  
-  y += 10;
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
-  doc.text(quotation.title, margin, y);
+  doc.text('Quote #', infoBoxX + 5, infoBoxY + 20);
+  doc.setFontSize(18);
+  doc.text(quotation.quote_number.replace('Q-', ''), infoBoxX + 5, infoBoxY + 28);
   
-  if (quotation.description) {
-    y += 8;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
-    const descLines = doc.splitTextToSize(quotation.description, contentWidth * 0.7);
-    doc.text(descLines, margin, y);
-    y += descLines.length * 5;
-  }
+  // Date information
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+  doc.text('Date Issued: ' + new Date(quotation.created_at).toLocaleDateString('en-US', {
+    month: 'short', day: '2-digit', year: 'numeric'
+  }), infoBoxX + 5, infoBoxY + 36);
   
-  y += 15;
+  const validUntil = quotation.valid_until 
+    ? new Date(quotation.valid_until).toLocaleDateString('en-US', {
+        month: 'short', day: '2-digit', year: 'numeric'
+      })
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+        month: 'short', day: '2-digit', year: 'numeric'
+      });
+  doc.text('Valid Until: ' + validUntil, infoBoxX + 5, infoBoxY + 42);
+  
+  y = Math.max(y, infoBoxY + infoBoxHeight) + 20;
   
   // ===== SERVICES TABLE =====
-  const tableY = y;
-  const tableHeight = 40;
+  const tableStartY = y;
+  const rowHeight = 8;
+  const headerHeight = 12;
   
-  // Table header
-  doc.setFillColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
-  doc.rect(margin, tableY, contentWidth, 12, 'F');
+  // Table headers
+  doc.setFillColor(hexToRgb(lightGray).r, hexToRgb(lightGray).g, hexToRgb(lightGray).b);
+  doc.rect(margin, tableStartY, contentWidth, headerHeight, 'F');
   
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('DESCRIPTION', margin + 5, tableY + 8);
-  doc.text('QTY', margin + contentWidth * 0.65, tableY + 8);
-  doc.text('RATE', margin + contentWidth * 0.75, tableY + 8);
-  doc.text('AMOUNT', margin + contentWidth * 0.85, tableY + 8);
-  
-  // Table content
-  doc.setFillColor(255, 255, 255);
-  doc.rect(margin, tableY + 12, contentWidth, 20, 'F');
+  // Header borders
   doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
-  doc.rect(margin, tableY, contentWidth, 32, 'S');
+  doc.setLineWidth(0.5);
+  doc.rect(margin, tableStartY, contentWidth, headerHeight, 'S');
   
-  // Vertical lines
-  doc.line(margin + contentWidth * 0.6, tableY, margin + contentWidth * 0.6, tableY + 32);
-  doc.line(margin + contentWidth * 0.7, tableY, margin + contentWidth * 0.7, tableY + 32);
-  doc.line(margin + contentWidth * 0.8, tableY, margin + contentWidth * 0.8, tableY + 32);
+  // Column widths
+  const descWidth = contentWidth * 0.5;
+  const qtyWidth = contentWidth * 0.15;
+  const priceWidth = contentWidth * 0.175;
+  const amountWidth = contentWidth * 0.175;
   
-  // Horizontal line after header
-  doc.line(margin, tableY + 12, margin + contentWidth, tableY + 12);
+  // Vertical lines for columns
+  doc.line(margin + descWidth, tableStartY, margin + descWidth, tableStartY + headerHeight);
+  doc.line(margin + descWidth + qtyWidth, tableStartY, margin + descWidth + qtyWidth, tableStartY + headerHeight);
+  doc.line(margin + descWidth + qtyWidth + priceWidth, tableStartY, margin + descWidth + qtyWidth + priceWidth, tableStartY + headerHeight);
+  
+  // Header text
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+  doc.text('Description', margin + 3, tableStartY + 8);
+  doc.text('Quantity', margin + descWidth + 3, tableStartY + 8);
+  doc.text('Price', margin + descWidth + qtyWidth + 3, tableStartY + 8);
+  doc.text('Amount', margin + descWidth + qtyWidth + priceWidth + 3, tableStartY + 8);
+  
+  // Service row
+  const serviceRowY = tableStartY + headerHeight;
+  const serviceRowHeight = 25;
+  
+  // Service row background
+  doc.setFillColor(255, 255, 255);
+  doc.rect(margin, serviceRowY, contentWidth, serviceRowHeight, 'F');
+  doc.rect(margin, serviceRowY, contentWidth, serviceRowHeight, 'S');
+  
+  // Vertical lines for service row
+  doc.line(margin + descWidth, serviceRowY, margin + descWidth, serviceRowY + serviceRowHeight);
+  doc.line(margin + descWidth + qtyWidth, serviceRowY, margin + descWidth + qtyWidth, serviceRowY + serviceRowHeight);
+  doc.line(margin + descWidth + qtyWidth + priceWidth, serviceRowY, margin + descWidth + qtyWidth + priceWidth, serviceRowY + serviceRowHeight);
   
   // Service details
-  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
-  doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.text(quotation.title, margin + 5, tableY + 22);
-  doc.text('1', margin + contentWidth * 0.65, tableY + 22);
-  doc.text(`${quotation.currency} ${quotation.amount.toLocaleString()}`, margin + contentWidth * 0.75, tableY + 22);
-  doc.text(`${quotation.currency} ${quotation.amount.toLocaleString()}`, margin + contentWidth * 0.85, tableY + 22);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+  doc.text(quotation.title, margin + 3, serviceRowY + 8);
   
-  y = tableY + 45;
+  if (quotation.description) {
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+    const descLines = doc.splitTextToSize(quotation.description, descWidth - 10);
+    doc.text(descLines.slice(0, 2), margin + 3, serviceRowY + 14);
+  }
+  
+  // Timeline if available
+  if (quotation.project_timeline) {
+    doc.setFontSize(7);
+    doc.setTextColor(hexToRgb(accent).r, hexToRgb(accent).g, hexToRgb(accent).b);
+    doc.text('Timeline: ' + quotation.project_timeline, margin + 3, serviceRowY + 22);
+  }
+  
+  // Quantity, Price, Amount
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+  doc.text('1', margin + descWidth + 10, serviceRowY + 12, { align: 'center' });
+  doc.text(`${quotation.amount.toLocaleString()}.00`, margin + descWidth + qtyWidth + priceWidth - 3, serviceRowY + 12, { align: 'right' });
+  doc.text(`${quotation.amount.toLocaleString()}.00`, margin + contentWidth - 3, serviceRowY + 12, { align: 'right' });
+  
+  y = serviceRowY + serviceRowHeight + 15;
   
   // ===== TOTALS SECTION =====
-  const totalsX = margin + contentWidth * 0.6;
-  const totalsWidth = contentWidth * 0.4;
+  const totalsStartX = margin + contentWidth * 0.65;
+  const totalsWidth = contentWidth * 0.35;
   
   const subtotal = quotation.amount;
-  const discount = quotation.discount_amount || 0;
   const taxRate = quotation.tax_rate || 0;
+  const discount = quotation.discount_amount || 0;
   const taxAmount = (subtotal - discount) * (taxRate / 100);
   const total = subtotal - discount + taxAmount;
   
-  // Totals background
-  doc.setFillColor(hexToRgb(light).r, hexToRgb(light).g, hexToRgb(light).b);
-  doc.rect(totalsX, y, totalsWidth, 35, 'F');
-  doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
-  doc.rect(totalsX, y, totalsWidth, 35, 'S');
+  // Totals rows
+  const totalsData = [
+    { label: 'TAX', value: taxAmount.toFixed(2) },
+    { label: 'TOTAL', value: total.toFixed(2), isBold: true },
+    { label: 'PAYMENTS/CREDITS', value: '0.00' },
+    { label: 'BALANCE DUE / USD', value: total.toFixed(2), isFinal: true }
+  ];
   
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
-  
-  let totalsY = y + 8;
-  doc.text('Subtotal:', totalsX + 5, totalsY);
-  doc.text(`${quotation.currency} ${subtotal.toLocaleString()}`, totalsX + totalsWidth - 5, totalsY, { align: 'right' });
-  
-  if (discount > 0) {
-    totalsY += 6;
-    doc.text('Discount:', totalsX + 5, totalsY);
-    doc.text(`-${quotation.currency} ${discount.toLocaleString()}`, totalsX + totalsWidth - 5, totalsY, { align: 'right' });
-  }
-  
-  if (taxRate > 0) {
-    totalsY += 6;
-    doc.text(`Tax (${taxRate}%):`, totalsX + 5, totalsY);
-    doc.text(`${quotation.currency} ${taxAmount.toLocaleString()}`, totalsX + totalsWidth - 5, totalsY, { align: 'right' });
-  }
-  
-  // Total line
-  doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
-  doc.line(totalsX + 5, totalsY + 3, totalsX + totalsWidth - 5, totalsY + 3);
-  
-  totalsY += 8;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(hexToRgb(success).r, hexToRgb(success).g, hexToRgb(success).b);
-  doc.text('TOTAL:', totalsX + 5, totalsY);
-  doc.text(`${quotation.currency} ${total.toLocaleString()}`, totalsX + totalsWidth - 5, totalsY, { align: 'right' });
+  totalsData.forEach((item, index) => {
+    const rowY = y + (index * 8);
+    
+    if (item.isFinal) {
+      // Final balance due with background
+      doc.setFillColor(hexToRgb(lightGray).r, hexToRgb(lightGray).g, hexToRgb(lightGray).b);
+      doc.rect(totalsStartX, rowY - 2, totalsWidth, 10, 'F');
+    }
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', item.isBold || item.isFinal ? 'bold' : 'normal');
+    doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+    doc.text(item.label, totalsStartX + 3, rowY + 3);
+    doc.text(item.value, totalsStartX + totalsWidth - 3, rowY + 3, { align: 'right' });
+    
+    if (item.isFinal) {
+      doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
+      doc.rect(totalsStartX, rowY - 2, totalsWidth, 10, 'S');
+    }
+  });
   
   y += 50;
   
-  // ===== PAYMENT TERMS =====
+  // ===== PAYMENTS SECTION =====
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
-  doc.text('PAYMENT TERMS', margin, y);
+  doc.text('PAYMENTS', margin, y);
   
-  y += 8;
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+  y += 10;
   
-  const paymentTerms = quotation.payment_terms || 'Payment due within 15 days of quote acceptance';
-  const paymentLines = doc.splitTextToSize(paymentTerms, contentWidth * 0.8);
-  doc.text(paymentLines, margin, y);
-  y += paymentLines.length * 5 + 5;
+  // Payment table header
+  doc.setFillColor(hexToRgb(lightGray).r, hexToRgb(lightGray).g, hexToRgb(lightGray).b);
+  doc.rect(margin, y, contentWidth, 8, 'F');
+  doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
+  doc.rect(margin, y, contentWidth, 8, 'S');
   
-  doc.text('• Bank Transfer, PayPal, Stripe accepted', margin, y);
-  y += 5;
-  doc.text('• All amounts in USD unless specified', margin, y);
-  
-  y += 15;
-  
-  // ===== FOOTER =====
-  const footerY = pageHeight - 30;
-  
-  // Footer background
-  doc.setFillColor(hexToRgb(light).r, hexToRgb(light).g, hexToRgb(light).b);
-  doc.rect(0, footerY, pageWidth, 30, 'F');
-  
-  // Thank you message
-  doc.setFontSize(11);
+  // Payment headers
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(hexToRgb(accent).r, hexToRgb(accent).g, hexToRgb(accent).b);
-  doc.text('Thank you for your business!', pageWidth / 2, footerY + 10, { align: 'center' });
+  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+  doc.text('Date', margin + 3, y + 5);
+  doc.text('Method', margin + 30, y + 5);
+  doc.text('Reference', margin + 80, y + 5);
+  doc.text('Applied Amount', margin + 120, y + 5);
+  doc.text('Total Payment', margin + 150, y + 5);
+  
+  // Payment row (empty)
+  y += 8;
+  doc.setFillColor(255, 255, 255);
+  doc.rect(margin, y, contentWidth, 10, 'F');
+  doc.rect(margin, y, contentWidth, 10, 'S');
   
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
-  doc.text('This quotation is valid for 30 days from the date above.', pageWidth / 2, footerY + 18, { align: 'center' });
-  doc.text('For questions, contact us at hello@hiremoeed.me', pageWidth / 2, footerY + 24, { align: 'center' });
+  doc.text('None', margin + 3, y + 6);
+  
+  y += 25;
+  
+  // ===== PROMOTIONAL MESSAGE =====
+  doc.setFillColor(hexToRgb(lightGray).r, hexToRgb(lightGray).g, hexToRgb(lightGray).b);
+  doc.rect(margin, y, contentWidth, 12, 'F');
+  doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
+  doc.rect(margin, y, contentWidth, 12, 'S');
+  
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(hexToRgb(primary).r, hexToRgb(primary).g, hexToRgb(primary).b);
+  doc.text('Get premium web solutions when you work with us! Visit https://hiremoeed.me/ to learn more.', margin + 3, y + 7);
+  
+  y += 25;
+  
+  // ===== FOOTER BRANDING =====
+  const footerY = pageHeight - 40;
+  
+  // Brand logos section
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+  
+  // Main brand
+  doc.text('Hire Moeed', margin, footerY);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Powering Your Online Potential', margin, footerY + 6);
+  
+  // Services offered
+  doc.text('Web Development', margin + 60, footerY);
+  doc.text('Modern solutions optimized for', margin + 60, footerY + 4);
+  doc.text('Digital Excellence', margin + 60, footerY + 8);
+  
+  doc.text('Mobile Apps', margin + 120, footerY);
+  doc.text('Premium Mobile Solutions', margin + 120, footerY + 4);
+  doc.text('and Software for Business', margin + 120, footerY + 8);
+  
+  // Payment terms
+  y = footerY + 20;
+  doc.setFontSize(8);
+  doc.setTextColor(hexToRgb(secondary).r, hexToRgb(secondary).g, hexToRgb(secondary).b);
+  const paymentTerms = quotation.payment_terms || 'Payment due within 15 days of acceptance';
+  doc.text(`Payment Terms: ${paymentTerms}`, margin, y);
+  doc.text('For questions, contact us at hello@hiremoeed.me', margin, y + 5);
   
   return doc;
 };
