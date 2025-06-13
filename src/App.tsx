@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import SEOHead from "@/components/SEOHead";
 import CustomCodeInjector from "@/components/CustomCodeInjector";
@@ -27,6 +27,36 @@ import "./App.css";
 
 const queryClient = new QueryClient();
 
+const AppContent = () => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {!isAdminRoute && <Navigation />}
+      <main className={isAdminRoute ? "min-h-screen" : "flex-grow"}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/estimate" element={<Estimate />} />
+          <Route path="/services/web-development" element={<WebDevelopment />} />
+          <Route path="/services/mobile-apps" element={<MobileApps />} />
+          <Route path="/services/ui-ux-design" element={<UIUXDesign />} />
+          <Route path="/services/api-development" element={<APIDeevelopment />} />
+          <Route path="/services/consulting" element={<Consulting />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/reset-password" element={<Admin />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      {!isAdminRoute && <Footer />}
+    </div>
+  );
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -35,28 +65,7 @@ function App() {
           <BrowserRouter>
             <SEOHead />
             <ScrollToTop />
-            <div className="min-h-screen flex flex-col">
-              <Navigation />
-              <main className="flex-grow">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/services" element={<Services />} />
-                  <Route path="/portfolio" element={<Portfolio />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/estimate" element={<Estimate />} />
-                  <Route path="/services/web-development" element={<WebDevelopment />} />
-                  <Route path="/services/mobile-apps" element={<MobileApps />} />
-                  <Route path="/services/ui-ux-design" element={<UIUXDesign />} />
-                  <Route path="/services/api-development" element={<APIDeevelopment />} />
-                  <Route path="/services/consulting" element={<Consulting />} />
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="/admin/reset-password" element={<Admin />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-              <Footer />
-            </div>
+            <AppContent />
             <CustomCodeInjector />
             <Toaster />
             <Sonner />
