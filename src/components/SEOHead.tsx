@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface SEOHeadProps {
   title?: string;
@@ -9,28 +10,33 @@ interface SEOHeadProps {
   image?: string;
   url?: string;
   type?: string;
-  customCode?: {
-    header?: string;
-    body?: string;
-    footer?: string;
-  };
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
-  title = "Hire Moeed - Professional Full Stack Developer & Software Engineer",
-  description = "Hire Abdul Moeed for professional web development, mobile apps, UI/UX design, API development, and custom software solutions. Expert full stack developer available worldwide.",
-  keywords = "hire full stack developer, web development services, mobile app development, UI UX design, API development, software engineer, react developer, node.js developer, hire moeed, abdul moeed",
+  title,
+  description,
+  keywords,
   image = "https://hiremoeed.me/lovable-uploads/f23285d7-3240-46fd-a294-3e5e897c9ae2.png",
   url = "https://hiremoeed.me",
-  type = "website",
-  customCode
+  type = "website"
 }) => {
+  const { settings, loading } = useSiteSettings();
+
+  // Use database settings as defaults, but allow props to override
+  const finalTitle = title || settings.site_title || "Hire Moeed - Professional Full Stack Developer & Software Engineer";
+  const finalDescription = description || settings.site_description || "Hire Abdul Moeed for professional web development, mobile apps, UI/UX design, API development, and custom software solutions. Expert full stack developer available worldwide.";
+  const finalKeywords = keywords || settings.site_keywords || "hire full stack developer, web development services, mobile app development, UI UX design, API development, software engineer, react developer, node.js developer, hire moeed, abdul moeed";
+
+  if (loading) {
+    return null;
+  }
+
   return (
     <Helmet>
       {/* Basic Meta Tags */}
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      <meta name="keywords" content={keywords} />
+      <title>{finalTitle}</title>
+      <meta name="description" content={finalDescription} />
+      <meta name="keywords" content={finalKeywords} />
       <meta name="author" content="Abdul Moeed" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta name="robots" content="index, follow" />
@@ -39,9 +45,24 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="rating" content="general" />
       <meta name="distribution" content="global" />
 
+      {/* Google Analytics */}
+      {settings.google_analytics_id && (
+        <>
+          <script async src={`https://www.googletagmanager.com/gtag/js?id=${settings.google_analytics_id}`} />
+          <script>
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${settings.google_analytics_id}');
+            `}
+          </script>
+        </>
+      )}
+
       {/* Open Graph Meta Tags */}
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
+      <meta property="og:title" content={finalTitle} />
+      <meta property="og:description" content={finalDescription} />
       <meta property="og:type" content={type} />
       <meta property="og:url" content={url} />
       <meta property="og:image" content={image} />
@@ -52,8 +73,8 @@ const SEOHead: React.FC<SEOHeadProps> = ({
 
       {/* Twitter Card Meta Tags */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={description} />
+      <meta name="twitter:title" content={finalTitle} />
+      <meta name="twitter:description" content={finalDescription} />
       <meta name="twitter:image" content={image} />
       <meta name="twitter:creator" content="@hiremoeed" />
       <meta name="twitter:site" content="@hiremoeed" />
@@ -69,6 +90,11 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       {/* Preconnect to external domains */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+      {/* Custom Header Code from Database */}
+      {settings.header_code && (
+        <div dangerouslySetInnerHTML={{ __html: settings.header_code }} />
+      )}
 
       {/* Enhanced Structured Data */}
       <script type="application/ld+json">
@@ -208,9 +234,14 @@ const SEOHead: React.FC<SEOHeadProps> = ({
         })}
       </script>
 
-      {/* Custom Header Code */}
-      {customCode?.header && (
-        <div dangerouslySetInnerHTML={{ __html: customCode.header }} />
+      {/* Custom Body Code - Note: This goes in head for now, ideally should be in body */}
+      {settings.body_code && (
+        <div dangerouslySetInnerHTML={{ __html: settings.body_code }} />
+      )}
+
+      {/* Custom Footer Code - Note: This goes in head for now, ideally should be at end of body */}
+      {settings.footer_code && (
+        <div dangerouslySetInnerHTML={{ __html: settings.footer_code }} />
       )}
     </Helmet>
   );
