@@ -146,11 +146,28 @@ export const useAuth = () => {
         throw new Error('Email not found');
       }
 
+      // Generate reset token
+      const resetToken = btoa(`${data.id}:${Date.now()}:${Math.random()}`);
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Store reset token in database
+      const { error: tokenError } = await supabase
+        .from('password_reset_tokens')
+        .insert({
+          admin_user_id: data.id,
+          token: resetToken,
+          expires_at: expiresAt.toISOString()
+        });
+
+      if (tokenError) {
+        throw new Error('Failed to create reset token');
+      }
+
       // Call the password recovery edge function
       const { error: emailError } = await supabase.functions.invoke('send-password-recovery', {
         body: {
           email: email,
-          resetLink: `${window.location.origin}/admin/reset-password?token=demo-token&email=${encodeURIComponent(email)}`,
+          resetLink: `${window.location.origin}/admin/reset-password?token=${encodeURIComponent(resetToken)}&email=${encodeURIComponent(email)}`,
         },
       });
 
