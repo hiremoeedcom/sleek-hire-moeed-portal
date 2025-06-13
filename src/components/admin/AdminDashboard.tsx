@@ -51,7 +51,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 text-left">
             <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
             <span className="text-sm text-gray-500">Welcome back, {user?.name}</span>
           </div>
@@ -64,40 +64,40 @@ const AdminDashboard = () => {
 
       <div className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-9 justify-start">
+            <TabsTrigger value="analytics" className="flex items-center gap-2 justify-start">
               <BarChart3 className="h-4 w-4" />
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="contacts" className="flex items-center gap-2">
+            <TabsTrigger value="contacts" className="flex items-center gap-2 justify-start">
               <Users className="h-4 w-4" />
               Contacts
             </TabsTrigger>
-            <TabsTrigger value="estimates" className="flex items-center gap-2">
+            <TabsTrigger value="estimates" className="flex items-center gap-2 justify-start">
               <Calculator className="h-4 w-4" />
               Estimates
             </TabsTrigger>
-            <TabsTrigger value="projects" className="flex items-center gap-2">
+            <TabsTrigger value="projects" className="flex items-center gap-2 justify-start">
               <FolderOpen className="h-4 w-4" />
               Projects
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="flex items-center gap-2">
+            <TabsTrigger value="tasks" className="flex items-center gap-2 justify-start">
               <CheckSquare className="h-4 w-4" />
               Tasks
             </TabsTrigger>
-            <TabsTrigger value="quotations" className="flex items-center gap-2">
+            <TabsTrigger value="quotations" className="flex items-center gap-2 justify-start">
               <FileText className="h-4 w-4" />
               Quotations
             </TabsTrigger>
-            <TabsTrigger value="email-quotes" className="flex items-center gap-2">
+            <TabsTrigger value="email-quotes" className="flex items-center gap-2 justify-start">
               <Mail className="h-4 w-4" />
               Email Quotes
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+            <TabsTrigger value="profile" className="flex items-center gap-2 justify-start">
               <User className="h-4 w-4" />
               Profile
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
+            <TabsTrigger value="settings" className="flex items-center gap-2 justify-start">
               <Settings className="h-4 w-4" />
               Settings
             </TabsTrigger>

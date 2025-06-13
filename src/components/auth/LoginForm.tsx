@@ -87,18 +87,18 @@ const LoginForm = () => {
   if (recoveryMode) {
     return (
       <Card className="w-full max-w-md mx-auto">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+        <CardHeader className="text-left">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
             <Mail className="h-6 w-6 text-blue-600" />
           </div>
-          <CardTitle>Forgot Password?</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-left">Forgot Password?</CardTitle>
+          <CardDescription className="text-left">
             Enter your email address and we'll send you a link to reset your password
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handlePasswordRecovery} className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-2 text-left">
               <Label htmlFor="recovery-email">Email Address</Label>
               <Input
                 id="recovery-email"
@@ -129,18 +129,18 @@ const LoginForm = () => {
 
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+      <CardHeader className="text-left">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
           <Lock className="h-6 w-6 text-gray-600" />
         </div>
-        <CardTitle>Admin Login</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-left">Admin Login</CardTitle>
+        <CardDescription className="text-left">
           Enter your credentials to access the admin dashboard
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleLogin} className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-2 text-left">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
@@ -152,7 +152,7 @@ const LoginForm = () => {
               disabled={loading}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 text-left">
             <Label htmlFor="password">Password</Label>
             <div className="relative">
               <Input
