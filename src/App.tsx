@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import SEOHead from "@/components/SEOHead";
+import CustomCodeInjector from "@/components/CustomCodeInjector";
 import Navigation from "./components/Navigation";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
@@ -56,6 +57,7 @@ function App() {
               </main>
               <Footer />
             </div>
+            <CustomCodeInjector />
             <Toaster />
             <Sonner />
           </BrowserRouter>

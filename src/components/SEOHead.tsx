@@ -91,9 +91,9 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-      {/* Custom Header Code from Database */}
+      {/* Custom Header Code from Database - inject directly without div wrapper */}
       {settings.header_code && (
-        <div dangerouslySetInnerHTML={{ __html: settings.header_code }} />
+        <script dangerouslySetInnerHTML={{ __html: settings.header_code }} />
       )}
 
       {/* Enhanced Structured Data */}
@@ -233,16 +233,6 @@ const SEOHead: React.FC<SEOHeadProps> = ({
           "priceRange": "$$"
         })}
       </script>
-
-      {/* Custom Body Code - Note: This goes in head for now, ideally should be in body */}
-      {settings.body_code && (
-        <div dangerouslySetInnerHTML={{ __html: settings.body_code }} />
-      )}
-
-      {/* Custom Footer Code - Note: This goes in head for now, ideally should be at end of body */}
-      {settings.footer_code && (
-        <div dangerouslySetInnerHTML={{ __html: settings.footer_code }} />
-      )}
     </Helmet>
   );
 };
