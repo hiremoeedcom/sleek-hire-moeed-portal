@@ -56,6 +56,7 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-family: 'Inter', sans-serif;
+    text-align: left;
   }
 
   html {
@@ -95,6 +96,7 @@
 
   .container-custom {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    text-align: left;
   }
 }
 
