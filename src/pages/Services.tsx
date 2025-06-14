@@ -19,7 +19,6 @@ import {
   Shield,
   Zap
 } from "lucide-react";
-import Footer from "@/components/Footer";
 
 const Services = () => {
   const services = [
@@ -509,8 +508,6 @@ const Services = () => {
           </div>
         </div>
       </section>
-      
-      <Footer />
     </div>
   );
 };
