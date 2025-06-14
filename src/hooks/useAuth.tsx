@@ -31,12 +31,6 @@ export const useAuth = () => {
       }
 
       const userData = JSON.parse(userStr);
-      
-      // Set the admin context for RLS
-      await supabase.rpc('set_config', {
-        setting_name: 'app.current_admin_id',
-        setting_value: userData.id
-      });
 
       // Verify token is still valid by checking user exists and is active
       const { data, error } = await supabase
@@ -110,12 +104,6 @@ export const useAuth = () => {
         is_active: data.is_active
       }));
 
-      // Set the admin context for RLS
-      await supabase.rpc('set_config', {
-        setting_name: 'app.current_admin_id',
-        setting_value: data.id
-      });
-
       setUser({
         id: data.id,
         email: data.email,
@@ -141,12 +129,6 @@ export const useAuth = () => {
 
   const signOut = async () => {
     try {
-      // Clear admin context
-      await supabase.rpc('set_config', {
-        setting_name: 'app.current_admin_id',
-        setting_value: ''
-      });
-
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
       setUser(null);
