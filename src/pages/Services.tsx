@@ -1,4 +1,4 @@
-import Navigation from "@/components/Navigation";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,6 @@ import {
   Shield,
   Zap
 } from "lucide-react";
-import Footer from "@/components/Footer";
 
 const Services = () => {
   const services = [
@@ -258,8 +257,6 @@ const Services = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navigation />
-      
       {/* Hero Section */}
       <section className="pt-32 pb-20">
         <div className="container-custom">
@@ -509,8 +506,6 @@ const Services = () => {
           </div>
         </div>
       </section>
-      
-      <Footer />
     </div>
   );
 };
