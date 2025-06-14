@@ -319,9 +319,9 @@ const QuotationsManager = () => {
         ))}
       </div>
 
-      {/* Preview Dialog */}
+      {/* Preview Dialog - Updated with full width */}
       <Dialog open={previewDialog.open} onOpenChange={(open) => setPreviewDialog({ open, quotation: null })}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] w-full max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Quotation Preview</DialogTitle>
           </DialogHeader>
@@ -372,7 +372,7 @@ const QuotationsManager = () => {
   );
 };
 
-// Preview component that shows quotation as HTML
+// Preview component with full width and dynamic currency
 const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
   const subtotal = quotation.amount;
   const taxRate = quotation.tax_rate || 0;
@@ -392,7 +392,7 @@ const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
   const timeline = quotation.project_timeline || '4–6 weeks';
 
   return (
-    <div className="bg-white p-8 border border-gray-300 shadow-lg w-full max-w-4xl mx-auto text-sm text-left">
+    <div className="bg-white p-8 border border-gray-300 shadow-lg w-full mx-auto text-sm text-left">
       {/* Header */}
       <header className="flex justify-between border-b-2 border-gray-300 pb-4 mb-6">
         <div className="text-sm text-left">
@@ -403,12 +403,12 @@ const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
           <div className="mb-1 text-left">Phone: +1 (555) 123-4567</div>
           <div className="text-left">New York, NY, USA</div>
         </div>
-        <div className="text-sm">
-          <div className="text-left"><strong>Quotation #: </strong><span className="float-right">{quotation.quote_number}</span></div>
-          <div className="text-left"><strong>Date: </strong><span className="float-right">{new Date(quotation.created_at).toLocaleDateString('en-US', {
+        <div className="text-sm min-w-[200px]">
+          <div className="flex justify-between"><strong>Quotation #:</strong><span>{quotation.quote_number}</span></div>
+          <div className="flex justify-between"><strong>Date:</strong><span>{new Date(quotation.created_at).toLocaleDateString('en-US', {
             year: 'numeric', month: 'long', day: 'numeric'
           })}</span></div>
-          <div className="text-left"><strong>Valid Until: </strong><span className="float-right">{validUntil}</span></div>
+          <div className="flex justify-between"><strong>Valid Until:</strong><span>{validUntil}</span></div>
         </div>
       </header>
 
@@ -510,6 +510,7 @@ const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
   );
 };
 
+// CreateQuoteForm component
 const CreateQuoteForm = ({ onSubmit }: { onSubmit: (data: any) => void }) => {
   const [formData, setFormData] = useState({
     title: '',
