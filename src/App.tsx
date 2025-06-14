@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -31,11 +32,14 @@ const AppContent = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isPublicQuoteRoute = location.pathname.startsWith('/quotes/');
+  
+  // Only show navigation and footer on regular pages
+  const showHeaderFooter = !isAdminRoute && !isPublicQuoteRoute;
 
   return (
     <div className="min-h-screen flex flex-col">
-      {!isAdminRoute && !isPublicQuoteRoute && <Navigation />}
-      <main className={isAdminRoute || isPublicQuoteRoute ? "min-h-screen" : "flex-grow"}>
+      {showHeaderFooter && <Navigation />}
+      <main className={showHeaderFooter ? "flex-grow" : "min-h-screen"}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
@@ -54,7 +58,7 @@ const AppContent = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      {!isAdminRoute && !isPublicQuoteRoute && <Footer />}
+      {showHeaderFooter && <Footer />}
     </div>
   );
 };
