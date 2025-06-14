@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -299,16 +298,13 @@ const Services = () => {
                   <div className="mb-6">
                     <h4 className="font-semibold mb-3 text-black">Key Features:</h4>
                     <ul className="space-y-2">
-                      {service.features.slice(0, 4).map((feature, idx) => (
+                      {service.features.map((feature, idx) => (
                         <li key={idx} className="flex items-start text-sm">
                           <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
                           {feature}
                         </li>
                       ))}
                     </ul>
-                    {service.features.length > 4 && (
-                      <p className="text-sm text-gray-500 mt-2">+{service.features.length - 4} more features</p>
-                    )}
                   </div>
 
                   <div className="mb-6">
