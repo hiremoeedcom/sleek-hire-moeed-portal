@@ -33,7 +33,7 @@ const AppContent = () => {
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isPublicQuoteRoute = location.pathname.startsWith('/quotes/');
   
-  // Only show navigation and footer on regular pages
+  // Only show navigation and footer on regular pages (not admin or public quote pages)
   const showHeaderFooter = !isAdminRoute && !isPublicQuoteRoute;
 
   return (
