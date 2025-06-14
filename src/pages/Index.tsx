@@ -1,117 +1,215 @@
 
-import React from 'react';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Code, Smartphone, Palette, Database, Users, CheckCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import { CheckCircle, ArrowRight, Code, Smartphone, Globe, Database, Shield, Zap } from "lucide-react";
 
 const Index = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+
   const services = [
     {
-      icon: Code,
       title: "Web Development",
-      description: "Modern, responsive websites and web applications built with the latest technologies.",
-      features: ["React & Next.js", "Node.js & Express", "Database Integration", "API Development"]
+      description: "Modern, responsive websites built with cutting-edge technologies like React, Next.js, and TypeScript",
+      features: ["React/Next.js", "Node.js", "Database Design", "API Integration"],
+      icon: Globe,
+      price: "From $1,500"
     },
     {
-      icon: Smartphone,
       title: "Mobile Apps",
-      description: "Cross-platform mobile applications for iOS and Android using React Native.",
-      features: ["React Native", "Cross-platform", "Native Performance", "App Store Optimization"]
+      description: "Native and cross-platform mobile applications for iOS and Android with seamless user experiences",
+      features: ["React Native", "iOS/Android", "UI/UX Design", "App Store Deployment"],
+      icon: Smartphone,
+      price: "From $3,000"
     },
     {
-      icon: Palette,
-      title: "UI/UX Design",
-      description: "Beautiful, intuitive user interfaces that provide exceptional user experiences.",
-      features: ["User Research", "Wireframing", "Prototyping", "Design Systems"]
-    },
-    {
-      icon: Database,
-      title: "Backend & APIs",
-      description: "Robust backend solutions and RESTful APIs to power your applications.",
-      features: ["RESTful APIs", "Database Design", "Authentication", "Cloud Integration"]
+      title: "Full-Stack Solutions",
+      description: "Complete end-to-end development services from frontend to backend with cloud deployment",
+      features: ["Frontend & Backend", "Cloud Deployment", "DevOps", "Maintenance"],
+      icon: Code,
+      price: "From $4,000"
     }
+  ];
+
+  const stats = [
+    { number: "50+", label: "Projects Completed" },
+    { number: "25+", label: "Happy Clients" },
+    { number: "3+", label: "Years Experience" },
+    { number: "24/7", label: "Support Available" }
+  ];
+
+  const technologies = [
+    { name: "React", category: "Frontend" },
+    { name: "Next.js", category: "Framework" },
+    { name: "TypeScript", category: "Language" },
+    { name: "Node.js", category: "Backend" },
+    { name: "Python", category: "Backend" },
+    { name: "PostgreSQL", category: "Database" },
+    { name: "AWS", category: "Cloud" },
+    { name: "Docker", category: "DevOps" }
   ];
 
   const testimonials = [
     {
       name: "Sarah Johnson",
-      role: "CEO, TechStart",
-      content: "Moeed delivered an exceptional web application that exceeded our expectations. His attention to detail and technical expertise are outstanding.",
+      company: "TechStart Inc.",
+      text: "Moeed delivered an exceptional e-commerce platform that exceeded our expectations. The attention to detail and technical expertise was outstanding.",
       rating: 5
     },
     {
       name: "Michael Chen",
-      role: "Product Manager, InnovateCorp",
-      content: "Working with Moeed was a game-changer for our project. He understood our requirements perfectly and delivered on time.",
+      company: "Digital Solutions LLC",
+      text: "Working with Moeed was a game-changer for our business. The mobile app he developed increased our user engagement by 200%.",
       rating: 5
     },
     {
       name: "Emily Rodriguez",
-      role: "Founder, StartupX",
-      content: "The mobile app Moeed developed for us has been incredibly successful. His skills in React Native are impressive.",
+      company: "Creative Agency",
+      text: "Professional, reliable, and incredibly skilled. Moeed transformed our ideas into a beautiful, functional website that drives results.",
       rating: 5
     }
   ];
 
+  const benefits = [
+    {
+      icon: Zap,
+      title: "Fast Delivery",
+      description: "Quick turnaround times without compromising on quality"
+    },
+    {
+      icon: Shield,
+      title: "Secure & Reliable",
+      description: "Built with security best practices and robust architecture"
+    },
+    {
+      icon: Database,
+      title: "Scalable Solutions",
+      description: "Future-proof applications that grow with your business"
+    }
+  ];
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
+      <Navigation />
+      
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-20 pb-16 lg:pt-32 lg:pb-24">
-        <div className="container-custom">
-          <div className="max-w-4xl mx-auto text-center">
-            <Badge variant="outline" className="mb-4">
-              Available for Projects
+      <section className="relative overflow-hidden pt-20 lg:pt-32 pb-20 lg:pb-32">
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white"></div>
+        <div className="relative container-custom">
+          <div className="text-center max-w-5xl mx-auto">
+            <Badge variant="secondary" className="mb-6 px-4 py-2">
+              ⚡ Available for new projects
             </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Full Stack Developer & Software Engineer
+            <h1 
+              className={`text-5xl lg:text-7xl font-bold mb-6 transition-all duration-1000 ${
+                isLoaded ? "animate-fade-in" : "opacity-0"
+              }`}
+            >
+              <span className="gradient-text">Premium</span>
+              <br />
+              <span className="text-black">Development Services</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              I create modern, scalable web applications and mobile apps that help businesses grow. 
-              From concept to deployment, I'll bring your ideas to life.
+            <p 
+              className={`text-xl lg:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto transition-all duration-1000 delay-300 ${
+                isLoaded ? "animate-fade-in" : "opacity-0"
+              }`}
+            >
+              I'm Moeed, a passionate full-stack developer who transforms innovative ideas into exceptional digital experiences using modern technology and elegant design principles.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild className="bg-black text-white hover:bg-gray-800">
+            <div 
+              className={`flex flex-col sm:flex-row gap-4 justify-center mb-12 transition-all duration-1000 delay-600 ${
+                isLoaded ? "animate-fade-in" : "opacity-0"
+              }`}
+            >
+              <Button 
+                size="lg" 
+                asChild 
+                className="bg-black text-white hover:bg-gray-800 hover:scale-105 transition-all duration-300 px-8 py-6 text-lg"
+              >
                 <Link to="/estimate">Get Free Estimate</Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                asChild 
+                className="border-2 border-black text-black hover:bg-black hover:text-white hover:scale-105 transition-all duration-300 px-8 py-6 text-lg"
+              >
                 <Link to="/portfolio">View Portfolio</Link>
               </Button>
             </div>
+            
+            {/* Trust indicators */}
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Money-back guarantee</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Free revisions</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>24/7 support</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-10 w-20 h-20 bg-black rounded-full opacity-10 animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-32 h-32 bg-gray-300 rounded-full opacity-20 animate-float" style={{animationDelay: '1s'}}></div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-20 bg-black text-white">
+        <div className="container-custom">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div 
+                key={index} 
+                className="text-center animate-fade-in hover:scale-105 transition-all duration-300"
+                style={{animationDelay: `${index * 0.1}s`}}
+              >
+                <div className="text-4xl lg:text-5xl font-bold mb-2">{stat.number}</div>
+                <div className="text-gray-300 text-sm lg:text-base">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Services Section */}
-      <section className="py-16 lg:py-24">
+      {/* Benefits Section */}
+      <section className="py-20 bg-gray-50">
         <div className="container-custom">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Services I Offer
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 gradient-text">
+              Why Choose Me?
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Comprehensive development services to bring your digital vision to life
+              I combine technical expertise with business understanding to deliver solutions that drive real results
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {services.map((service, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <service.icon className="h-10 w-10 text-blue-600 mb-4" />
-                  <CardTitle className="text-xl">{service.title}</CardTitle>
-                  <CardDescription>{service.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {service.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center text-sm text-gray-600">
-                        <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
+          <div className="grid md:grid-cols-3 gap-8">
+            {benefits.map((benefit, index) => (
+              <Card 
+                key={index} 
+                className="text-center hover-lift animate-slide-up"
+                style={{animationDelay: `${index * 0.2}s`}}
+              >
+                <CardContent className="p-8">
+                  <benefit.icon className="h-12 w-12 mx-auto mb-4 text-black" />
+                  <h3 className="text-xl font-bold mb-3">{benefit.title}</h3>
+                  <p className="text-gray-600">{benefit.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -119,71 +217,105 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Why Choose Me Section */}
-      <section className="py-16 lg:py-24 bg-gray-50">
+      {/* Services Section */}
+      <section className="section-padding">
         <div className="container-custom">
-          <div className="max-w-3xl mx-auto text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose Me?
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 gradient-text">
+              What I Offer
             </h2>
-            <p className="text-xl text-gray-600">
-              I combine technical expertise with business understanding to deliver exceptional results
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Comprehensive development services tailored to bring your vision to life with cutting-edge technology
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Code className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Expert Developer</h3>
-              <p className="text-gray-600">5+ years of experience in full-stack development with modern technologies</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Client-Focused</h3>
-              <p className="text-gray-600">I prioritize clear communication and deliver exactly what you need</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-8 w-8 text-purple-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Quality Assured</h3>
-              <p className="text-gray-600">Rigorous testing and code reviews ensure reliable, maintainable solutions</p>
-            </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {services.map((service, index) => (
+              <Card 
+                key={index} 
+                className="hover-lift border-0 shadow-lg animate-slide-up group relative overflow-hidden"
+                style={{animationDelay: `${index * 0.2}s`}}
+              >
+                <CardContent className="p-8">
+                  <service.icon className="h-12 w-12 mb-4 text-black group-hover:scale-110 transition-transform duration-300" />
+                  <h3 className="text-2xl font-bold mb-4 group-hover:gradient-text transition-all duration-300">
+                    {service.title}
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    {service.description}
+                  </p>
+                  <ul className="space-y-2 mb-6">
+                    {service.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-center text-sm">
+                        <CheckCircle className="w-4 h-4 text-green-500 mr-3 flex-shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="border-t pt-4">
+                    <p className="text-lg font-bold text-black">{service.price}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Technologies Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container-custom">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-6">Technologies I Use</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              I stay up-to-date with the latest technologies to ensure your project uses the best tools available
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {technologies.map((tech, index) => (
+              <Card 
+                key={index} 
+                className="text-center hover-lift animate-scale-in"
+                style={{animationDelay: `${index * 0.1}s`}}
+              >
+                <CardContent className="p-6">
+                  <h3 className="font-bold text-lg mb-1">{tech.name}</h3>
+                  <p className="text-sm text-gray-500">{tech.category}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16 lg:py-24">
+      <section className="py-20">
         <div className="container-custom">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              What Clients Say
-            </h2>
+            <h2 className="text-4xl font-bold mb-6 gradient-text">Client Success Stories</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Don't just take my word for it - hear from satisfied clients
+              Don't just take my word for it - hear what my clients have to say about working with me
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="bg-white">
-                <CardContent className="pt-6">
+              <Card 
+                key={index} 
+                className="hover-lift animate-slide-up"
+                style={{animationDelay: `${index * 0.2}s`}}
+              >
+                <CardContent className="p-8">
                   <div className="flex mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <span key={i} className="text-yellow-400">★</span>
+                      <span key={i} className="text-yellow-400 text-xl">★</span>
                     ))}
                   </div>
-                  <p className="text-gray-600 mb-4">"{testimonial.content}"</p>
+                  <p className="text-gray-600 mb-6 italic">"{testimonial.text}"</p>
                   <div>
-                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.role}</p>
+                    <p className="font-bold">{testimonial.name}</p>
+                    <p className="text-sm text-gray-500">{testimonial.company}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -193,24 +325,53 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 lg:py-24 bg-black text-white">
+      <section className="section-padding bg-gradient-to-r from-gray-50 to-gray-100">
         <div className="container-custom text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-4xl lg:text-5xl font-bold mb-6">
             Ready to Start Your Project?
           </h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Let's discuss your project requirements and how I can help bring your vision to life.
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            Let's discuss your requirements and create something amazing together. I offer free consultations to understand your needs and provide the best solution for your business.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild className="bg-white text-black hover:bg-gray-100">
-              <Link to="/estimate">Get Free Estimate</Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Button 
+              size="lg" 
+              asChild 
+              className="bg-black text-white hover:bg-gray-800 hover:scale-105 transition-all duration-300 px-8 py-6 text-lg"
+            >
+              <Link to="/contact">
+                Start Conversation
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
             </Button>
-            <Button size="lg" variant="outline" asChild className="border-white text-white hover:bg-white hover:text-black">
-              <Link to="/contact">Contact Me</Link>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              asChild 
+              className="border-2 border-black text-black hover:bg-black hover:text-white hover:scale-105 transition-all duration-300 px-8 py-6 text-lg"
+            >
+              <Link to="/about">Learn More</Link>
             </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto text-left">
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h4 className="font-bold mb-2">Free Consultation</h4>
+              <p className="text-sm text-gray-600">30-minute call to discuss your project needs</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h4 className="font-bold mb-2">Detailed Proposal</h4>
+              <p className="text-sm text-gray-600">Comprehensive project plan with timeline and pricing</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h4 className="font-bold mb-2">Ongoing Support</h4>
+              <p className="text-sm text-gray-600">Post-launch maintenance and feature updates</p>
+            </div>
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };
