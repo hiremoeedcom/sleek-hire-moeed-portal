@@ -78,29 +78,29 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
   doc.text('New York, NY, USA', margin, y);
   
-  // Quote details (right side)
-  const rightColumnX = pageWidth - 70;
+  // Quote details (right side) - with right alignment for values
+  const rightColumnX = pageWidth - 80;
   let rightY = 30;
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
-  doc.text('Quotation #: ', rightColumnX, rightY);
+  doc.text('Quotation #:', rightColumnX, rightY);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.text(quotation.quote_number, rightColumnX + 25, rightY);
+  doc.text(quotation.quote_number, pageWidth - margin, rightY, { align: 'right' });
   
   rightY += 4;
   doc.setFont('helvetica', 'bold');
-  doc.text('Date: ', rightColumnX, rightY);
+  doc.text('Date:', rightColumnX, rightY);
   doc.setFont('helvetica', 'normal');
   doc.text(new Date(quotation.created_at).toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric'
-  }), rightColumnX + 12, rightY);
+  }), pageWidth - margin, rightY, { align: 'right' });
   
   rightY += 4;
   doc.setFont('helvetica', 'bold');
-  doc.text('Valid Until: ', rightColumnX, rightY);
+  doc.text('Valid Until:', rightColumnX, rightY);
   doc.setFont('helvetica', 'normal');
   const validUntil = quotation.valid_until 
     ? new Date(quotation.valid_until).toLocaleDateString('en-US', {
@@ -109,7 +109,7 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
     : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric'
       });
-  doc.text(validUntil, rightColumnX + 22, rightY);
+  doc.text(validUntil, pageWidth - margin, rightY, { align: 'right' });
   
   // Header border line
   y = Math.max(y, rightY) + 8;
@@ -190,10 +190,10 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   
   y += 8;
   
-  // Services table to match HTML exactly
+  // Simple single-item table (no auto-generated products)
   const tableStartY = y;
-  const rowHeight = 8;
   const headerHeight = 10;
+  const rowHeight = 8;
   
   // Table headers
   doc.setFillColor(hexToRgb(lightGray).r, hexToRgb(lightGray).g, hexToRgb(lightGray).b);
@@ -204,131 +204,105 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   doc.setLineWidth(0.5);
   doc.rect(margin, tableStartY, contentWidth, headerHeight, 'S');
   
-  // Column widths to match HTML layout
-  const descWidth = contentWidth * 0.5;
-  const hoursWidth = contentWidth * 0.15;
-  const rateWidth = contentWidth * 0.175;
-  const amountWidth = contentWidth * 0.175;
+  // Column widths - simplified for single item
+  const descWidth = contentWidth * 0.7;
+  const amountWidth = contentWidth * 0.3;
   
-  // Vertical lines for columns
+  // Vertical line for columns
   doc.line(margin + descWidth, tableStartY, margin + descWidth, tableStartY + headerHeight);
-  doc.line(margin + descWidth + hoursWidth, tableStartY, margin + descWidth + hoursWidth, tableStartY + headerHeight);
-  doc.line(margin + descWidth + hoursWidth + rateWidth, tableStartY, margin + descWidth + hoursWidth + rateWidth, tableStartY + headerHeight);
   
   // Header text
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
   doc.text('Description', margin + 2, tableStartY + 7);
-  doc.text('Hours', margin + descWidth + 2, tableStartY + 7);
-  doc.text('Rate', margin + descWidth + hoursWidth + 2, tableStartY + 7);
-  doc.text('Amount', margin + descWidth + hoursWidth + rateWidth + 2, tableStartY + 7);
+  doc.text('Amount', margin + descWidth + 2, tableStartY + 7);
   
-  // Service rows (breaking down the single project into multiple line items like HTML)
-  const services = [
-    { desc: quotation.title, hours: Math.ceil(quotation.amount * 0.7 / 75), rate: 75 },
-    { desc: 'UI/UX Design & Prototyping', hours: Math.ceil(quotation.amount * 0.15 / 70), rate: 70 },
-    { desc: 'QA & Testing', hours: Math.ceil(quotation.amount * 0.1 / 60), rate: 60 },
-    { desc: 'Project Management', hours: Math.ceil(quotation.amount * 0.05 / 50), rate: 50 }
-  ];
+  // Single service row (just the project title and amount)
+  const currentY = tableStartY + headerHeight;
   
-  let currentY = tableStartY + headerHeight;
+  // Service row background and border
+  doc.setFillColor(255, 255, 255);
+  doc.rect(margin, currentY, contentWidth, rowHeight, 'F');
+  doc.rect(margin, currentY, contentWidth, rowHeight, 'S');
   
-  services.forEach((service, index) => {
-    const serviceAmount = service.hours * service.rate;
-    
-    // Service row background and border
-    doc.setFillColor(255, 255, 255);
-    doc.rect(margin, currentY, contentWidth, rowHeight, 'F');
-    doc.rect(margin, currentY, contentWidth, rowHeight, 'S');
-    
-    // Vertical lines for service row
-    doc.line(margin + descWidth, currentY, margin + descWidth, currentY + rowHeight);
-    doc.line(margin + descWidth + hoursWidth, currentY, margin + descWidth + hoursWidth, currentY + rowHeight);
-    doc.line(margin + descWidth + hoursWidth + rateWidth, currentY, margin + descWidth + hoursWidth + rateWidth, currentY + rowHeight);
-    
-    // Service details
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
-    
-    // Description
-    const serviceDesc = index === 0 ? service.desc : service.desc;
-    const descLines = doc.splitTextToSize(serviceDesc, descWidth - 4);
-    doc.text(descLines[0], margin + 2, currentY + 5.5);
-    
-    // Hours, Rate, Amount
-    doc.text(service.hours.toString(), margin + descWidth + hoursWidth/2, currentY + 5.5, { align: 'center' });
-    doc.text(`$${service.rate}.00`, margin + descWidth + hoursWidth + rateWidth/2, currentY + 5.5, { align: 'center' });
-    doc.text(`$${serviceAmount.toLocaleString()}.00`, margin + descWidth + hoursWidth + rateWidth + amountWidth - 2, currentY + 5.5, { align: 'right' });
-    
-    currentY += rowHeight;
-  });
+  // Vertical line for service row
+  doc.line(margin + descWidth, currentY, margin + descWidth, currentY + rowHeight);
   
-  y = currentY + 8;
+  // Service details
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
   
-  // ===== TOTALS SECTION (matching HTML layout) =====
+  // Description and Amount
+  const descLines = doc.splitTextToSize(quotation.title, descWidth - 4);
+  doc.text(descLines[0], margin + 2, currentY + 5.5);
+  doc.text(`${quotation.currency} ${quotation.amount.toLocaleString()}.00`, margin + descWidth + amountWidth - 2, currentY + 5.5, { align: 'right' });
+  
+  y = currentY + rowHeight + 8;
+  
+  // ===== TOTALS SECTION =====
   const totalsStartX = margin + contentWidth - 70;
   const totalsWidth = 70;
   
   const subtotal = quotation.amount;
-  const taxRate = quotation.tax_rate || 8.5;
+  const taxRate = quotation.tax_rate || 0;
   const discount = quotation.discount_amount || 0;
   const taxAmount = (subtotal - discount) * (taxRate / 100);
   const total = subtotal - discount + taxAmount;
   
-  // Totals table background
-  doc.setFillColor(255, 255, 255);
-  
-  const totalsData = [
-    { label: 'Subtotal:', value: `$${subtotal.toLocaleString()}.00` },
-    { label: `Tax (${taxRate}%):`, value: `$${taxAmount.toFixed(2)}` },
-    { label: 'Total:', value: `$${total.toFixed(2)}`, isBold: true }
-  ];
-  
-  totalsData.forEach((item, index) => {
-    const rowY = y + (index * 5);
+  // Only show totals if there's tax or discount
+  if (taxRate > 0 || discount > 0) {
+    const totalsData = [
+      { label: 'Subtotal:', value: `${quotation.currency} ${subtotal.toLocaleString()}.00` },
+      ...(discount > 0 ? [{ label: 'Discount:', value: `-${quotation.currency} ${discount.toLocaleString()}.00` }] : []),
+      ...(taxRate > 0 ? [{ label: `Tax (${taxRate}%):`, value: `${quotation.currency} ${taxAmount.toFixed(2)}` }] : []),
+      { label: 'Total:', value: `${quotation.currency} ${total.toFixed(2)}`, isBold: true }
+    ];
     
-    doc.setFontSize(10);
-    doc.setFont('helvetica', item.isBold ? 'bold' : 'normal');
-    doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
-    doc.text(item.label, totalsStartX, rowY);
-    doc.text(item.value, totalsStartX + totalsWidth - 2, rowY, { align: 'right' });
+    totalsData.forEach((item, index) => {
+      const rowY = y + (index * 5);
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', item.isBold ? 'bold' : 'normal');
+      doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
+      doc.text(item.label, totalsStartX, rowY);
+      doc.text(item.value, totalsStartX + totalsWidth - 2, rowY, { align: 'right' });
+      
+      // Add border for total row
+      if (item.isBold) {
+        doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
+        doc.line(totalsStartX, rowY + 1, totalsStartX + totalsWidth, rowY + 1);
+      }
+    });
     
-    // Add border for total row
-    if (item.isBold) {
-      doc.setDrawColor(hexToRgb(border).r, hexToRgb(border).g, hexToRgb(border).b);
-      doc.line(totalsStartX, rowY + 1, totalsStartX + totalsWidth, rowY + 1);
-    }
-  });
-  
-  y += 25;
-  
-  // Clear float equivalent
-  y = Math.max(y, y);
+    y += (totalsData.length * 5) + 10;
+  }
   
   // ===== NOTES SECTION =====
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
-  doc.text('Notes', margin, y);
-  
-  y += 2;
-  doc.setLineWidth(0.5);
-  doc.line(margin, y, margin + 18, y);
-  
-  y += 8;
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(hexToRgb('#444444').r, hexToRgb('#444444').g, hexToRgb('#444444').b);
-  
-  const notesText = quotation.notes || 
-    'This quotation includes all design, development, testing, and deployment services as outlined above. Any additional changes outside this scope will be quoted separately.';
-  
-  const notesLines = doc.splitTextToSize(notesText, contentWidth);
-  doc.text(notesLines, margin, y);
-  
-  y += (notesLines.length * 4) + 10;
+  if (quotation.notes || quotation.description) {
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
+    doc.text('Notes', margin, y);
+    
+    y += 2;
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, margin + 18, y);
+    
+    y += 8;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(hexToRgb('#444444').r, hexToRgb('#444444').g, hexToRgb('#444444').b);
+    
+    const notesText = quotation.notes || quotation.description || 
+      'This quotation includes all services as outlined above. Any additional changes outside this scope will be quoted separately.';
+    
+    const notesLines = doc.splitTextToSize(notesText, contentWidth);
+    doc.text(notesLines, margin, y);
+    
+    y += (notesLines.length * 4) + 10;
+  }
   
   // ===== TERMS & CONDITIONS SECTION =====
   doc.setFontSize(13);
@@ -361,24 +335,6 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   });
   
   y += 15;
-  
-  // ===== SIGNATURE SECTION =====
-  const sigStartY = Math.min(y, pageHeight - 50);
-  
-  // Signature lines
-  const sig1X = margin;
-  const sig2X = pageWidth - margin - 55;
-  const sigWidth = 55;
-  
-  doc.setDrawColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
-  doc.setLineWidth(0.5);
-  doc.line(sig1X, sigStartY, sig1X + sigWidth, sigStartY);
-  doc.line(sig2X, sigStartY, sig2X + sigWidth, sigStartY);
-  
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Authorized Signature – HireMoeed', sig1X + (sigWidth / 2), sigStartY + 5, { align: 'center' });
-  doc.text('Client Signature', sig2X + (sigWidth / 2), sigStartY + 5, { align: 'center' });
   
   // ===== FOOTER =====
   const footerY = pageHeight - 20;

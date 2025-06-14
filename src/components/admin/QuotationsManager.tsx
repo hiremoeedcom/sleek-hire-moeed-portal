@@ -375,7 +375,7 @@ const QuotationsManager = () => {
 // Preview component that shows quotation as HTML
 const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
   const subtotal = quotation.amount;
-  const taxRate = quotation.tax_rate || 8.5;
+  const taxRate = quotation.tax_rate || 0;
   const discount = quotation.discount_amount || 0;
   const taxAmount = (subtotal - discount) * (taxRate / 100);
   const total = subtotal - discount + taxAmount;
@@ -390,42 +390,40 @@ const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
 
   const paymentTerms = quotation.payment_terms || '50% payment due upon project commencement, 50% upon final delivery.';
   const timeline = quotation.project_timeline || '4–6 weeks';
-  const estimatedHours = Math.ceil(quotation.amount / 75);
-  const hourlyRate = Math.round(quotation.amount / estimatedHours);
 
   return (
-    <div className="bg-white p-8 border border-gray-300 shadow-lg max-w-4xl mx-auto text-sm">
+    <div className="bg-white p-8 border border-gray-300 shadow-lg w-full max-w-4xl mx-auto text-sm text-left">
       {/* Header */}
       <header className="flex justify-between border-b-2 border-gray-300 pb-4 mb-6">
-        <div className="text-sm">
-          <h1 className="text-2xl font-bold text-blue-900 mb-1">HireMoeed</h1>
-          <div className="mb-1">Professional Development & Tech Solutions</div>
-          <div className="mb-1">Website: <a href="https://hiremoeed.me" className="text-blue-900">www.HireMoeed.me</a></div>
-          <div className="mb-1">Email: <a href="mailto:hello@hiremoeed.me" className="text-blue-900">hello@hiremoeed.me</a></div>
-          <div className="mb-1">Phone: +1 (555) 123-4567</div>
-          <div>New York, NY, USA</div>
+        <div className="text-sm text-left">
+          <h1 className="text-2xl font-bold text-blue-900 mb-1 text-left">HireMoeed</h1>
+          <div className="mb-1 text-left">Professional Development & Tech Solutions</div>
+          <div className="mb-1 text-left">Website: <a href="https://hiremoeed.me" className="text-blue-900">www.HireMoeed.me</a></div>
+          <div className="mb-1 text-left">Email: <a href="mailto:hello@hiremoeed.me" className="text-blue-900">hello@hiremoeed.me</a></div>
+          <div className="mb-1 text-left">Phone: +1 (555) 123-4567</div>
+          <div className="text-left">New York, NY, USA</div>
         </div>
-        <div className="text-right text-sm">
-          <div><strong>Quotation #: </strong>{quotation.quote_number}</div>
-          <div><strong>Date: </strong>{new Date(quotation.created_at).toLocaleDateString('en-US', {
+        <div className="text-sm">
+          <div className="text-left"><strong>Quotation #: </strong><span className="float-right">{quotation.quote_number}</span></div>
+          <div className="text-left"><strong>Date: </strong><span className="float-right">{new Date(quotation.created_at).toLocaleDateString('en-US', {
             year: 'numeric', month: 'long', day: 'numeric'
-          })}</div>
-          <div><strong>Valid Until: </strong>{validUntil}</div>
+          })}</span></div>
+          <div className="text-left"><strong>Valid Until: </strong><span className="float-right">{validUntil}</span></div>
         </div>
       </header>
 
       {/* Client Information */}
       <div className="mb-6">
-        <h2 className="text-lg mb-2 border-b border-gray-400 pb-1">Client Information</h2>
+        <h2 className="text-lg mb-2 border-b border-gray-400 pb-1 text-left">Client Information</h2>
         <div className="flex justify-between text-sm">
-          <address className="not-italic leading-relaxed">
+          <address className="not-italic leading-relaxed text-left">
             <strong>Client:</strong><br />
             {quotation.client_name || 'Valued Client'}<br />
             {quotation.client_company && <>{quotation.client_company}<br /></>}
             {quotation.client_email && <>{quotation.client_email}<br /></>}
             {quotation.client_phone && <>{quotation.client_phone}<br /></>}
           </address>
-          <address className="not-italic leading-relaxed">
+          <address className="not-italic leading-relaxed text-left">
             <strong>Prepared By:</strong><br />
             Moeed from HireMoeed<br />
             hello@hiremoeed.me<br />
@@ -436,73 +434,71 @@ const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
 
       {/* Quotation Breakdown */}
       <div className="mb-6">
-        <h2 className="text-lg mb-2 border-b border-gray-400 pb-1">Quotation Breakdown</h2>
+        <h2 className="text-lg mb-2 border-b border-gray-400 pb-1 text-left">Quotation Breakdown</h2>
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr>
               <th className="p-3 border-b border-gray-400 text-left bg-gray-100 font-semibold">Description</th>
-              <th className="p-3 border-b border-gray-400 text-left bg-gray-100 font-semibold">Hours</th>
-              <th className="p-3 border-b border-gray-400 text-left bg-gray-100 font-semibold">Rate</th>
               <th className="p-3 border-b border-gray-400 text-left bg-gray-100 font-semibold">Amount</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td className="p-3 border-b border-gray-400">{quotation.title}</td>
-              <td className="p-3 border-b border-gray-400">{estimatedHours}</td>
-              <td className="p-3 border-b border-gray-400">${hourlyRate}.00</td>
-              <td className="p-3 border-b border-gray-400">${quotation.amount.toLocaleString()}.00</td>
+              <td className="p-3 border-b border-gray-400 text-left">{quotation.title}</td>
+              <td className="p-3 border-b border-gray-400 text-left">{quotation.currency} {quotation.amount.toLocaleString()}.00</td>
             </tr>
           </tbody>
         </table>
 
-        <div className="float-right mt-4 w-72">
-          <table className="w-full text-sm">
-            <tr>
-              <td className="p-2">Subtotal:</td>
-              <td className="p-2 text-right">${subtotal.toLocaleString()}.00</td>
-            </tr>
-            <tr>
-              <td className="p-2">Tax ({taxRate}%):</td>
-              <td className="p-2 text-right">${taxAmount.toFixed(2)}</td>
-            </tr>
-            <tr className="font-bold">
-              <td className="p-2"><strong>Total:</strong></td>
-              <td className="p-2 text-right"><strong>${total.toFixed(2)}</strong></td>
-            </tr>
-          </table>
-        </div>
+        {(taxRate > 0 || discount > 0) && (
+          <div className="float-right mt-4 w-72">
+            <table className="w-full text-sm">
+              <tr>
+                <td className="p-2 text-left">Subtotal:</td>
+                <td className="p-2 text-right">{quotation.currency} {subtotal.toLocaleString()}.00</td>
+              </tr>
+              {discount > 0 && (
+                <tr>
+                  <td className="p-2 text-left">Discount:</td>
+                  <td className="p-2 text-right">-{quotation.currency} {discount.toLocaleString()}.00</td>
+                </tr>
+              )}
+              {taxRate > 0 && (
+                <tr>
+                  <td className="p-2 text-left">Tax ({taxRate}%):</td>
+                  <td className="p-2 text-right">{quotation.currency} {taxAmount.toFixed(2)}</td>
+                </tr>
+              )}
+              <tr className="font-bold">
+                <td className="p-2 text-left"><strong>Total:</strong></td>
+                <td className="p-2 text-right"><strong>{quotation.currency} {total.toFixed(2)}</strong></td>
+              </tr>
+            </table>
+          </div>
+        )}
       </div>
 
       <div className="clear-both"></div>
 
       {/* Notes */}
-      <div className="mb-6 text-sm">
-        <h2 className="text-lg mb-2 border-b border-gray-400 pb-1">Notes</h2>
-        <p className="leading-relaxed text-gray-700">
-          {quotation.notes || 'This quotation includes all design, development, testing, and deployment services as outlined above. Any additional changes outside this scope will be quoted separately.'}
-        </p>
-      </div>
+      {(quotation.notes || quotation.description) && (
+        <div className="mb-6 text-sm">
+          <h2 className="text-lg mb-2 border-b border-gray-400 pb-1 text-left">Notes</h2>
+          <p className="leading-relaxed text-gray-700 text-left">
+            {quotation.notes || quotation.description || 'This quotation includes all services as outlined above. Any additional changes outside this scope will be quoted separately.'}
+          </p>
+        </div>
+      )}
 
       {/* Terms & Conditions */}
       <div className="mb-6 text-sm">
-        <h2 className="text-lg mb-2 border-b border-gray-400 pb-1">Terms & Conditions</h2>
-        <ul className="leading-relaxed text-gray-700 list-disc ml-5">
+        <h2 className="text-lg mb-2 border-b border-gray-400 pb-1 text-left">Terms & Conditions</h2>
+        <ul className="leading-relaxed text-gray-700 list-disc ml-5 text-left">
           <li>{paymentTerms}</li>
           <li>Quotation valid for 14 days from the issue date.</li>
           <li>Delivery timeline: {timeline} from project start.</li>
           <li>HireMoeed retains the right to adjust this quote for scope changes.</li>
         </ul>
-      </div>
-
-      {/* Signature */}
-      <div className="flex justify-between mt-16 mb-6">
-        <div className="w-2/5">
-          <div className="border-t border-black pt-1 text-center text-sm">Authorized Signature – HireMoeed</div>
-        </div>
-        <div className="w-2/5">
-          <div className="border-t border-black pt-1 text-center text-sm">Client Signature</div>
-        </div>
       </div>
 
       {/* Footer */}
