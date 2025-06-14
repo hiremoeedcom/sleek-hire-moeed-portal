@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Download, Send, Trash, Edit } from 'lucide-react';
+import { Plus, Download, Send, Trash, Edit, Share2, Copy } from 'lucide-react';
 import { generateProfessionalQuotePDF } from '@/utils/pdfGenerator';
 
 interface Quotation {
@@ -161,6 +161,21 @@ const QuotationsManager = () => {
     setPreviewDialog({ open: true, quotation });
   };
 
+  const shareQuotation = (quotation: Quotation) => {
+    const shareUrl = `${window.location.origin}/quotes/${quotation.quote_number}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      toast({
+        title: "Link Copied!",
+        description: "Shareable quotation link has been copied to clipboard",
+      });
+    }).catch(() => {
+      toast({
+        title: "Link Ready",
+        description: `Share this link: ${shareUrl}`,
+      });
+    });
+  };
+
   const sendEmail = async (quotation: Quotation) => {
     if (!emailData.customerEmail || !emailData.customerName) {
       toast({
@@ -299,6 +314,10 @@ const QuotationsManager = () => {
                 <Button size="sm" variant="outline" onClick={() => downloadPDF(quotation)}>
                   <Download className="h-4 w-4 mr-2" />
                   Download PDF
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => shareQuotation(quotation)}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share Link
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => openEmailDialog(quotation)}>
                   <Send className="h-4 w-4 mr-2" />

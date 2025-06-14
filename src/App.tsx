@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +21,7 @@ import UIUXDesign from "./pages/UIUXDesign";
 import APIDeevelopment from "./pages/APIDeevelopment";
 import Consulting from "./pages/Consulting";
 import Admin from "./pages/Admin";
+import PublicQuotation from "./pages/PublicQuotation";
 import NotFound from "./pages/NotFound";
 import "./App.css";
 
@@ -30,11 +30,12 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isPublicQuoteRoute = location.pathname.startsWith('/quotes/');
 
   return (
     <div className="min-h-screen flex flex-col">
-      {!isAdminRoute && <Navigation />}
-      <main className={isAdminRoute ? "min-h-screen" : "flex-grow"}>
+      {!isAdminRoute && !isPublicQuoteRoute && <Navigation />}
+      <main className={isAdminRoute || isPublicQuoteRoute ? "min-h-screen" : "flex-grow"}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
@@ -49,10 +50,11 @@ const AppContent = () => {
           <Route path="/services/consulting" element={<Consulting />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/reset-password" element={<Admin />} />
+          <Route path="/quotes/:quoteId" element={<PublicQuotation />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && !isPublicQuoteRoute && <Footer />}
     </div>
   );
 };
