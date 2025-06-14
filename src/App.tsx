@@ -8,7 +8,6 @@ import { HelmetProvider } from 'react-helmet-async';
 import SEOHead from "@/components/SEOHead";
 import CustomCodeInjector from "@/components/CustomCodeInjector";
 import Navigation from "./components/Navigation";
-import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
 import Index from "./pages/Index";
 import About from "./pages/About";
@@ -23,6 +22,8 @@ import APIDeevelopment from "./pages/APIDeevelopment";
 import Consulting from "./pages/Consulting";
 import Admin from "./pages/Admin";
 import PublicQuotation from "./pages/PublicQuotation";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import "./App.css";
 
@@ -49,6 +50,8 @@ const AppContent = () => {
           <Route path="/services/ui-ux-design" element={<UIUXDesign />} />
           <Route path="/services/api-development" element={<APIDeevelopment />} />
           <Route path="/services/consulting" element={<Consulting />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/reset-password" element={<Admin />} />
           <Route path="/quotes/:quoteId" element={<PublicQuotation />} />
