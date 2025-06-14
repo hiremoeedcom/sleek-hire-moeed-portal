@@ -11,6 +11,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Download, Send, Trash, Edit, Share2, Copy } from 'lucide-react';
 import { generateProfessionalQuotePDF } from '@/utils/pdfGenerator';
+import QuotationItemsManager from './QuotationItemsManager';
+
+interface QuotationItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
 
 interface Quotation {
   id: string;
@@ -31,6 +40,7 @@ interface Quotation {
   notes?: string;
   tax_rate?: number;
   discount_amount?: number;
+  items?: QuotationItem[];
 }
 
 const QuotationsManager = () => {
@@ -59,14 +69,29 @@ const QuotationsManager = () => {
     try {
       const { data, error } = await supabase
         .from('quotations')
-        .select('*')
+        .select(`
+          *,
+          quotation_items (
+            id,
+            description,
+            quantity,
+            unit_price,
+            total
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching quotations:', error);
         throw error;
       }
-      setQuotations(data || []);
+      
+      const quotationsWithItems = data?.map(quotation => ({
+        ...quotation,
+        items: quotation.quotation_items || []
+      })) || [];
+      
+      setQuotations(quotationsWithItems);
     } catch (error) {
       console.error('Exception in fetchQuotations:', error);
       toast({
@@ -84,16 +109,44 @@ const QuotationsManager = () => {
       const { data: quoteNumber } = await supabase
         .rpc('generate_quote_number');
 
-      const { error } = await supabase
+      const { items, ...quotationData } = formData;
+      
+      // Calculate total from items
+      const totalAmount = items.reduce((sum: number, item: QuotationItem) => sum + item.total, 0);
+
+      const { data: quotation, error: quotationError } = await supabase
         .from('quotations')
         .insert({
           quote_number: quoteNumber,
-          ...formData,
-        });
+          ...quotationData,
+          amount: totalAmount,
+        })
+        .select()
+        .single();
 
-      if (error) {
-        console.error('Error creating quotation:', error);
-        throw error;
+      if (quotationError) {
+        console.error('Error creating quotation:', quotationError);
+        throw quotationError;
+      }
+
+      // Insert quotation items
+      if (items && items.length > 0) {
+        const itemsToInsert = items.map((item: QuotationItem) => ({
+          quotation_id: quotation.id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total: item.total,
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('quotation_items')
+          .insert(itemsToInsert);
+
+        if (itemsError) {
+          console.error('Error creating quotation items:', itemsError);
+          throw itemsError;
+        }
       }
 
       toast({
@@ -252,7 +305,7 @@ const QuotationsManager = () => {
                 New Quote
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Quotation</DialogTitle>
               </DialogHeader>
@@ -294,8 +347,8 @@ const QuotationsManager = () => {
                   </span>
                 </div>
                 <div>
-                  <span className="text-sm font-medium">Timeline: </span>
-                  <span className="text-sm">{quotation.project_timeline || 'Not specified'}</span>
+                  <span className="text-sm font-medium">Items: </span>
+                  <span className="text-sm">{quotation.items?.length || 0} line items</span>
                 </div>
               </div>
               
@@ -391,9 +444,11 @@ const QuotationsManager = () => {
   );
 };
 
-// Preview component with full width and dynamic currency
+// Updated QuotationPreview component to handle multiple items
 const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
-  const subtotal = quotation.amount;
+  const subtotal = quotation.items && quotation.items.length > 0 
+    ? quotation.items.reduce((sum, item) => sum + item.total, 0)
+    : quotation.amount;
   const taxRate = quotation.tax_rate || 0;
   const discount = quotation.discount_amount || 0;
   const taxAmount = (subtotal - discount) * (taxRate / 100);
@@ -458,14 +513,29 @@ const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
           <thead>
             <tr>
               <th className="p-3 border-b border-gray-400 text-left bg-gray-100 font-semibold">Description</th>
-              <th className="p-3 border-b border-gray-400 text-left bg-gray-100 font-semibold">Amount</th>
+              <th className="p-3 border-b border-gray-400 text-center bg-gray-100 font-semibold">Quantity</th>
+              <th className="p-3 border-b border-gray-400 text-right bg-gray-100 font-semibold">Unit Price</th>
+              <th className="p-3 border-b border-gray-400 text-right bg-gray-100 font-semibold">Total</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className="p-3 border-b border-gray-400 text-left">{quotation.title}</td>
-              <td className="p-3 border-b border-gray-400 text-left">{quotation.currency} {quotation.amount.toLocaleString()}.00</td>
-            </tr>
+            {quotation.items && quotation.items.length > 0 ? (
+              quotation.items.map((item, index) => (
+                <tr key={index}>
+                  <td className="p-3 border-b border-gray-400 text-left">{item.description}</td>
+                  <td className="p-3 border-b border-gray-400 text-center">{item.quantity}</td>
+                  <td className="p-3 border-b border-gray-400 text-right">{quotation.currency} {item.unit_price.toFixed(2)}</td>
+                  <td className="p-3 border-b border-gray-400 text-right">{quotation.currency} {item.total.toFixed(2)}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td className="p-3 border-b border-gray-400 text-left">{quotation.title}</td>
+                <td className="p-3 border-b border-gray-400 text-center">1</td>
+                <td className="p-3 border-b border-gray-400 text-right">{quotation.currency} {quotation.amount.toFixed(2)}</td>
+                <td className="p-3 border-b border-gray-400 text-right">{quotation.currency} {quotation.amount.toFixed(2)}</td>
+              </tr>
+            )}
           </tbody>
         </table>
 
@@ -474,12 +544,12 @@ const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
             <table className="w-full text-sm">
               <tr>
                 <td className="p-2 text-left">Subtotal:</td>
-                <td className="p-2 text-right">{quotation.currency} {subtotal.toLocaleString()}.00</td>
+                <td className="p-2 text-right">{quotation.currency} {subtotal.toFixed(2)}</td>
               </tr>
               {discount > 0 && (
                 <tr>
                   <td className="p-2 text-left">Discount:</td>
-                  <td className="p-2 text-right">-{quotation.currency} {discount.toLocaleString()}.00</td>
+                  <td className="p-2 text-right">-{quotation.currency} {discount.toFixed(2)}</td>
                 </tr>
               )}
               {taxRate > 0 && (
@@ -529,12 +599,11 @@ const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
   );
 };
 
-// CreateQuoteForm component
+// Updated CreateQuoteForm component to include items management
 const CreateQuoteForm = ({ onSubmit }: { onSubmit: (data: any) => void }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    amount: 0,
     currency: 'USD',
     valid_until: '',
     client_name: '',
@@ -548,9 +617,13 @@ const CreateQuoteForm = ({ onSubmit }: { onSubmit: (data: any) => void }) => {
     discount_amount: 0,
   });
 
+  const [items, setItems] = useState<QuotationItem[]>([
+    { id: '1', description: '', quantity: 1, unit_price: 0, total: 0 }
+  ]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({ ...formData, items });
   };
 
   const updateField = (field: string, value: any) => {
@@ -632,16 +705,6 @@ const CreateQuoteForm = ({ onSubmit }: { onSubmit: (data: any) => void }) => {
 
       <div className="grid md:grid-cols-3 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount *</Label>
-          <Input
-            id="amount"
-            type="number"
-            value={formData.amount}
-            onChange={(e) => updateField('amount', Number(e.target.value))}
-            required
-          />
-        </div>
-        <div className="space-y-2">
           <Label htmlFor="currency">Currency</Label>
           <Select value={formData.currency} onValueChange={(value) => updateField('currency', value)}>
             <SelectTrigger>
@@ -664,9 +727,6 @@ const CreateQuoteForm = ({ onSubmit }: { onSubmit: (data: any) => void }) => {
             onChange={(e) => updateField('valid_until', e.target.value)}
           />
         </div>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="tax_rate">Tax Rate (%)</Label>
           <Input
@@ -677,16 +737,23 @@ const CreateQuoteForm = ({ onSubmit }: { onSubmit: (data: any) => void }) => {
             onChange={(e) => updateField('tax_rate', Number(e.target.value))}
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="discount_amount">Discount Amount</Label>
-          <Input
-            id="discount_amount"
-            type="number"
-            value={formData.discount_amount}
-            onChange={(e) => updateField('discount_amount', Number(e.target.value))}
-          />
-        </div>
       </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="discount_amount">Discount Amount</Label>
+        <Input
+          id="discount_amount"
+          type="number"
+          value={formData.discount_amount}
+          onChange={(e) => updateField('discount_amount', Number(e.target.value))}
+        />
+      </div>
+
+      <QuotationItemsManager 
+        items={items} 
+        onItemsChange={setItems}
+        currency={formData.currency}
+      />
 
       <div className="space-y-2">
         <Label htmlFor="payment_terms">Payment Terms</Label>

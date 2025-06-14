@@ -1,6 +1,14 @@
 
 import jsPDF from 'jspdf';
 
+interface QuotationItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
 interface QuotationData {
   id: string;
   quote_number: string;
@@ -20,6 +28,7 @@ interface QuotationData {
   notes?: string;
   tax_rate?: number;
   discount_amount?: number;
+  items?: QuotationItem[];
 }
 
 export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
@@ -190,7 +199,7 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   
   y += 8;
   
-  // Simple single-item table (no auto-generated products)
+  // Table setup for items
   const tableStartY = y;
   const headerHeight = 10;
   const rowHeight = 8;
@@ -204,48 +213,80 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   doc.setLineWidth(0.5);
   doc.rect(margin, tableStartY, contentWidth, headerHeight, 'S');
   
-  // Column widths - simplified for single item
-  const descWidth = contentWidth * 0.7;
-  const amountWidth = contentWidth * 0.3;
+  // Column widths for multiple items
+  const descWidth = contentWidth * 0.4;
+  const qtyWidth = contentWidth * 0.15;
+  const priceWidth = contentWidth * 0.2;
+  const totalWidth = contentWidth * 0.25;
   
-  // Vertical line for columns
+  // Vertical lines for columns
   doc.line(margin + descWidth, tableStartY, margin + descWidth, tableStartY + headerHeight);
+  doc.line(margin + descWidth + qtyWidth, tableStartY, margin + descWidth + qtyWidth, tableStartY + headerHeight);
+  doc.line(margin + descWidth + qtyWidth + priceWidth, tableStartY, margin + descWidth + qtyWidth + priceWidth, tableStartY + headerHeight);
   
   // Header text
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
   doc.text('Description', margin + 2, tableStartY + 7);
-  doc.text('Amount', margin + descWidth + 2, tableStartY + 7);
+  doc.text('Qty', margin + descWidth + 2, tableStartY + 7);
+  doc.text('Unit Price', margin + descWidth + qtyWidth + 2, tableStartY + 7);
+  doc.text('Total', margin + descWidth + qtyWidth + priceWidth + 2, tableStartY + 7);
   
-  // Single service row (just the project title and amount)
-  const currentY = tableStartY + headerHeight;
+  let currentY = tableStartY + headerHeight;
   
-  // Service row background and border
-  doc.setFillColor(255, 255, 255);
-  doc.rect(margin, currentY, contentWidth, rowHeight, 'F');
-  doc.rect(margin, currentY, contentWidth, rowHeight, 'S');
+  // Display items - either from items array or fallback to single item
+  const itemsToDisplay = quotation.items && quotation.items.length > 0 
+    ? quotation.items 
+    : [{
+        id: '1',
+        description: quotation.title,
+        quantity: 1,
+        unit_price: quotation.amount,
+        total: quotation.amount
+      }];
   
-  // Vertical line for service row
-  doc.line(margin + descWidth, currentY, margin + descWidth, currentY + rowHeight);
+  itemsToDisplay.forEach((item, index) => {
+    // Item row background and border
+    doc.setFillColor(255, 255, 255);
+    doc.rect(margin, currentY, contentWidth, rowHeight, 'F');
+    doc.rect(margin, currentY, contentWidth, rowHeight, 'S');
+    
+    // Vertical lines for item row
+    doc.line(margin + descWidth, currentY, margin + descWidth, currentY + rowHeight);
+    doc.line(margin + descWidth + qtyWidth, currentY, margin + descWidth + qtyWidth, currentY + rowHeight);
+    doc.line(margin + descWidth + qtyWidth + priceWidth, currentY, margin + descWidth + qtyWidth + priceWidth, currentY + rowHeight);
+    
+    // Item details
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
+    
+    // Description (truncated if too long)
+    const descLines = doc.splitTextToSize(item.description, descWidth - 4);
+    doc.text(descLines[0], margin + 2, currentY + 5.5);
+    
+    // Quantity (centered)
+    doc.text(item.quantity.toString(), margin + descWidth + qtyWidth/2, currentY + 5.5, { align: 'center' });
+    
+    // Unit Price (right aligned)
+    doc.text(`${quotation.currency} ${item.unit_price.toFixed(2)}`, margin + descWidth + qtyWidth + priceWidth - 2, currentY + 5.5, { align: 'right' });
+    
+    // Total (right aligned)
+    doc.text(`${quotation.currency} ${item.total.toFixed(2)}`, margin + descWidth + qtyWidth + priceWidth + totalWidth - 2, currentY + 5.5, { align: 'right' });
+    
+    currentY += rowHeight;
+  });
   
-  // Service details
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(hexToRgb(darkText).r, hexToRgb(darkText).g, hexToRgb(darkText).b);
-  
-  // Description and Amount
-  const descLines = doc.splitTextToSize(quotation.title, descWidth - 4);
-  doc.text(descLines[0], margin + 2, currentY + 5.5);
-  doc.text(`${quotation.currency} ${quotation.amount.toLocaleString()}.00`, margin + descWidth + amountWidth - 2, currentY + 5.5, { align: 'right' });
-  
-  y = currentY + rowHeight + 8;
+  y = currentY + 8;
   
   // ===== TOTALS SECTION =====
   const totalsStartX = margin + contentWidth - 70;
   const totalsWidth = 70;
   
-  const subtotal = quotation.amount;
+  const subtotal = quotation.items && quotation.items.length > 0 
+    ? quotation.items.reduce((sum, item) => sum + item.total, 0)
+    : quotation.amount;
   const taxRate = quotation.tax_rate || 0;
   const discount = quotation.discount_amount || 0;
   const taxAmount = (subtotal - discount) * (taxRate / 100);
@@ -254,8 +295,8 @@ export const generateProfessionalQuotePDF = (quotation: QuotationData) => {
   // Only show totals if there's tax or discount
   if (taxRate > 0 || discount > 0) {
     const totalsData = [
-      { label: 'Subtotal:', value: `${quotation.currency} ${subtotal.toLocaleString()}.00` },
-      ...(discount > 0 ? [{ label: 'Discount:', value: `-${quotation.currency} ${discount.toLocaleString()}.00` }] : []),
+      { label: 'Subtotal:', value: `${quotation.currency} ${subtotal.toFixed(2)}` },
+      ...(discount > 0 ? [{ label: 'Discount:', value: `-${quotation.currency} ${discount.toFixed(2)}` }] : []),
       ...(taxRate > 0 ? [{ label: `Tax (${taxRate}%):`, value: `${quotation.currency} ${taxAmount.toFixed(2)}` }] : []),
       { label: 'Total:', value: `${quotation.currency} ${total.toFixed(2)}`, isBold: true }
     ];

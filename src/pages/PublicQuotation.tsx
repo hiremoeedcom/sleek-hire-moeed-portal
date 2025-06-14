@@ -7,6 +7,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Download, FileText } from 'lucide-react';
 import { generateProfessionalQuotePDF } from '@/utils/pdfGenerator';
 
+interface QuotationItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
 interface Quotation {
   id: string;
   quote_number: string;
@@ -26,6 +34,7 @@ interface Quotation {
   notes?: string;
   tax_rate?: number;
   discount_amount?: number;
+  items?: QuotationItem[];
 }
 
 const PublicQuotation = () => {
@@ -45,7 +54,16 @@ const PublicQuotation = () => {
     try {
       const { data, error } = await supabase
         .from('quotations')
-        .select('*')
+        .select(`
+          *,
+          quotation_items (
+            id,
+            description,
+            quantity,
+            unit_price,
+            total
+          )
+        `)
         .eq('quote_number', quoteId)
         .single();
 
@@ -54,7 +72,10 @@ const PublicQuotation = () => {
         return;
       }
 
-      setQuotation(data);
+      setQuotation({
+        ...data,
+        items: data.quotation_items || []
+      });
     } catch (error) {
       console.error('Error fetching quotation:', error);
       setError('Failed to load quotation');
@@ -130,9 +151,11 @@ const PublicQuotation = () => {
   );
 };
 
-// Reuse the same preview component from QuotationsManager
+// Updated QuotationPreview component to handle multiple items
 const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
-  const subtotal = quotation.amount;
+  const subtotal = quotation.items && quotation.items.length > 0 
+    ? quotation.items.reduce((sum, item) => sum + item.total, 0)
+    : quotation.amount;
   const taxRate = quotation.tax_rate || 0;
   const discount = quotation.discount_amount || 0;
   const taxAmount = (subtotal - discount) * (taxRate / 100);
@@ -197,14 +220,29 @@ const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
           <thead>
             <tr>
               <th className="p-3 border-b border-gray-400 text-left bg-gray-100 font-semibold">Description</th>
-              <th className="p-3 border-b border-gray-400 text-left bg-gray-100 font-semibold">Amount</th>
+              <th className="p-3 border-b border-gray-400 text-center bg-gray-100 font-semibold">Quantity</th>
+              <th className="p-3 border-b border-gray-400 text-right bg-gray-100 font-semibold">Unit Price</th>
+              <th className="p-3 border-b border-gray-400 text-right bg-gray-100 font-semibold">Total</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className="p-3 border-b border-gray-400 text-left">{quotation.title}</td>
-              <td className="p-3 border-b border-gray-400 text-left">{quotation.currency} {quotation.amount.toLocaleString()}.00</td>
-            </tr>
+            {quotation.items && quotation.items.length > 0 ? (
+              quotation.items.map((item, index) => (
+                <tr key={index}>
+                  <td className="p-3 border-b border-gray-400 text-left">{item.description}</td>
+                  <td className="p-3 border-b border-gray-400 text-center">{item.quantity}</td>
+                  <td className="p-3 border-b border-gray-400 text-right">{quotation.currency} {item.unit_price.toFixed(2)}</td>
+                  <td className="p-3 border-b border-gray-400 text-right">{quotation.currency} {item.total.toFixed(2)}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td className="p-3 border-b border-gray-400 text-left">{quotation.title}</td>
+                <td className="p-3 border-b border-gray-400 text-center">1</td>
+                <td className="p-3 border-b border-gray-400 text-right">{quotation.currency} {quotation.amount.toFixed(2)}</td>
+                <td className="p-3 border-b border-gray-400 text-right">{quotation.currency} {quotation.amount.toFixed(2)}</td>
+              </tr>
+            )}
           </tbody>
         </table>
 
@@ -213,12 +251,12 @@ const QuotationPreview = ({ quotation }: { quotation: Quotation }) => {
             <table className="w-full text-sm">
               <tr>
                 <td className="p-2 text-left">Subtotal:</td>
-                <td className="p-2 text-right">{quotation.currency} {subtotal.toLocaleString()}.00</td>
+                <td className="p-2 text-right">{quotation.currency} {subtotal.toFixed(2)}</td>
               </tr>
               {discount > 0 && (
                 <tr>
                   <td className="p-2 text-left">Discount:</td>
-                  <td className="p-2 text-right">-{quotation.currency} {discount.toLocaleString()}.00</td>
+                  <td className="p-2 text-right">-{quotation.currency} {discount.toFixed(2)}</td>
                 </tr>
               )}
               {taxRate > 0 && (
