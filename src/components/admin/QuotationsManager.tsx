@@ -215,7 +215,7 @@ const QuotationsManager = () => {
   };
 
   const shareQuotation = (quotation: Quotation) => {
-    const shareUrl = `${window.location.origin}/quotes/${quotation.quote_number}`;
+    const shareUrl = `https://hiremoeed.me/quotes/${quotation.quote_number}`;
     navigator.clipboard.writeText(shareUrl).then(() => {
       toast({
         title: "Link Copied!",
