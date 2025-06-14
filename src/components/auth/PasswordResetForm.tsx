@@ -114,18 +114,21 @@ const PasswordResetForm = () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.rpc('reset_admin_password', {
-        reset_token: token,
-        new_password: password
-      });
+      // Call the reset password function using a direct SQL query approach
+      const { data, error } = await supabase
+        .rpc('reset_admin_password' as any, {
+          reset_token: token,
+          new_password: password
+        }) as { data: any, error: any };
 
       if (error) {
         throw new Error(error.message);
       }
 
-      const result = data;
+      // Parse the result since it's returned as JSONB
+      const result = typeof data === 'string' ? JSON.parse(data) : data;
       
-      if (result.success) {
+      if (result && result.success) {
         toast({
           title: "Password Reset Successful",
           description: "Your password has been updated successfully. You can now log in with your new password.",
@@ -138,7 +141,7 @@ const PasswordResetForm = () => {
       } else {
         toast({
           title: "Reset Failed",
-          description: result.error || "Unable to reset password",
+          description: result?.error || "Unable to reset password",
           variant: "destructive",
         });
       }
