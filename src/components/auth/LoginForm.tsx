@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { validateEmail, checkRateLimit } from '@/utils/security';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -16,11 +17,43 @@ const LoginForm = () => {
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [attemptCount, setAttemptCount] = useState(0);
   const { toast } = useToast();
   const { signIn, requestPasswordReset } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Input validation
+    if (!validateEmail(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password.length < 1) {
+      toast({
+        title: "Password Required",
+        description: "Please enter your password",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Rate limiting
+    const rateLimitKey = `login_${email}`;
+    if (!checkRateLimit(rateLimitKey, 5, 15 * 60 * 1000)) {
+      toast({
+        title: "Too Many Attempts",
+        description: "Too many login attempts. Please try again in 15 minutes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -31,8 +64,10 @@ const LoginForm = () => {
           title: "Login Successful",
           description: "Welcome to the admin dashboard",
         });
+        setAttemptCount(0);
         // The useAuth hook will handle the redirect
       } else {
+        setAttemptCount(prev => prev + 1);
         toast({
           title: "Login Failed",
           description: result.error || "Invalid credentials",
@@ -41,6 +76,7 @@ const LoginForm = () => {
       }
     } catch (error) {
       console.error('Login error:', error);
+      setAttemptCount(prev => prev + 1);
       toast({
         title: "Login Error",
         description: "An unexpected error occurred",
@@ -53,6 +89,27 @@ const LoginForm = () => {
 
   const handlePasswordRecovery = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateEmail(recoveryEmail)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Rate limiting for password recovery
+    const rateLimitKey = `recovery_${recoveryEmail}`;
+    if (!checkRateLimit(rateLimitKey, 3, 60 * 60 * 1000)) { // 3 attempts per hour
+      toast({
+        title: "Too Many Requests",
+        description: "Too many password recovery requests. Please try again in 1 hour.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setRecoveryLoading(true);
 
     try {
@@ -93,7 +150,7 @@ const LoginForm = () => {
           </div>
           <CardTitle className="text-left">Forgot Password?</CardTitle>
           <CardDescription className="text-left">
-            Enter your email address and we'll send you a link to reset your password
+            Enter your email address and we'll send you a secure link to reset your password
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -108,6 +165,7 @@ const LoginForm = () => {
                 placeholder="Enter your admin email"
                 required
                 disabled={recoveryLoading}
+                maxLength={254}
               />
             </div>
             <Button type="submit" className="w-full" disabled={recoveryLoading}>
@@ -139,6 +197,15 @@ const LoginForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {attemptCount >= 3 && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-yellow-800">
+              Multiple failed attempts detected. Please ensure you're using the correct credentials.
+            </div>
+          </div>
+        )}
+        
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2 text-left">
             <Label htmlFor="email">Email</Label>
@@ -150,6 +217,7 @@ const LoginForm = () => {
               placeholder="admin@example.com"
               required
               disabled={loading}
+              maxLength={254}
             />
           </div>
           <div className="space-y-2 text-left">
@@ -163,6 +231,7 @@ const LoginForm = () => {
                 placeholder="Enter your password"
                 required
                 disabled={loading}
+                maxLength={128}
               />
               <Button
                 type="button"

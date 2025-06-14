@@ -495,6 +495,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      hash_password: {
+        Args: { password: string }
+        Returns: string
+      }
+      is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      verify_password: {
+        Args: { password: string; hash: string }
+        Returns: boolean
+      }
     }
     Enums: {
       project_type:

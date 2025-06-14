@@ -34,8 +34,8 @@ const PasswordResetForm = () => {
         throw new Error('Passwords do not match');
       }
 
-      if (newPassword.length < 6) {
-        throw new Error('Password must be at least 6 characters long');
+      if (newPassword.length < 8) {
+        throw new Error('Password must be at least 8 characters long');
       }
 
       // Verify token and check if it's still valid
@@ -54,10 +54,18 @@ const PasswordResetForm = () => {
         throw new Error('Reset token has expired');
       }
 
+      // Hash the new password using the database function
+      const { data: hashedPassword, error: hashError } = await supabase
+        .rpc('hash_password', { password: newPassword });
+
+      if (hashError || !hashedPassword) {
+        throw new Error('Failed to process password');
+      }
+
       // Update the admin user's password
       const { error: updateError } = await supabase
         .from('admin_users')
-        .update({ password_hash: newPassword })
+        .update({ password_hash: hashedPassword })
         .eq('id', resetToken.admin_user_id)
         .eq('email', email);
 
@@ -135,9 +143,10 @@ const PasswordResetForm = () => {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password"
+                placeholder="Enter new password (min 8 characters)"
                 required
                 disabled={loading}
+                minLength={8}
               />
             </div>
             <div className="space-y-2">
@@ -150,6 +159,7 @@ const PasswordResetForm = () => {
                 placeholder="Confirm new password"
                 required
                 disabled={loading}
+                minLength={8}
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>

@@ -32,6 +32,12 @@ export const useAuth = () => {
 
       const userData = JSON.parse(userStr);
       
+      // Set the admin context for RLS
+      await supabase.rpc('set_config', {
+        setting_name: 'app.current_admin_id',
+        setting_value: userData.id
+      });
+
       // Verify token is still valid by checking user exists and is active
       const { data, error } = await supabase
         .from('admin_users')
@@ -57,6 +63,7 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      // First, get the user data
       const { data, error } = await supabase
         .from('admin_users')
         .select('id, email, name, role, is_active, password_hash')
@@ -68,9 +75,14 @@ export const useAuth = () => {
         throw new Error('Invalid credentials');
       }
 
-      // For demo purposes, use simple password check
-      // In production, you should use proper password hashing
-      if (password !== 'admin123') {
+      // Verify password using the database function
+      const { data: passwordValid, error: passwordError } = await supabase
+        .rpc('verify_password', {
+          password: password,
+          hash: data.password_hash
+        });
+
+      if (passwordError || !passwordValid) {
         throw new Error('Invalid credentials');
       }
 
@@ -80,8 +92,15 @@ export const useAuth = () => {
         .update({ last_login: new Date().toISOString() })
         .eq('id', data.id);
 
-      // Store session
-      const token = btoa(`${data.id}:${Date.now()}`);
+      // Generate secure session token
+      const tokenData = {
+        id: data.id,
+        email: data.email,
+        timestamp: Date.now(),
+        random: crypto.getRandomValues(new Uint32Array(1))[0]
+      };
+      
+      const token = btoa(JSON.stringify(tokenData));
       localStorage.setItem('admin_token', token);
       localStorage.setItem('admin_user', JSON.stringify({
         id: data.id,
@@ -90,6 +109,12 @@ export const useAuth = () => {
         role: data.role,
         is_active: data.is_active
       }));
+
+      // Set the admin context for RLS
+      await supabase.rpc('set_config', {
+        setting_name: 'app.current_admin_id',
+        setting_value: data.id
+      });
 
       setUser({
         id: data.id,
@@ -116,6 +141,12 @@ export const useAuth = () => {
 
   const signOut = async () => {
     try {
+      // Clear admin context
+      await supabase.rpc('set_config', {
+        setting_name: 'app.current_admin_id',
+        setting_value: ''
+      });
+
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
       setUser(null);
@@ -146,8 +177,9 @@ export const useAuth = () => {
         throw new Error('Email not found');
       }
 
-      // Generate reset token
-      const resetToken = btoa(`${data.id}:${Date.now()}:${Math.random()}`);
+      // Generate cryptographically secure reset token
+      const randomBytes = crypto.getRandomValues(new Uint8Array(32));
+      const resetToken = Array.from(randomBytes, byte => byte.toString(16).padStart(2, '0')).join('');
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
       // Store reset token in database

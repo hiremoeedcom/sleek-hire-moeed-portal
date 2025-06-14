@@ -31,8 +31,28 @@ const AdminProfileSettings = () => {
     setLoading(true);
 
     try {
-      // Verify current password first
-      if (emailPassword !== 'admin123') {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      // Verify current password using database function
+      const { data: currentUser } = await supabase
+        .from('admin_users')
+        .select('password_hash')
+        .eq('id', user.id)
+        .single();
+
+      if (!currentUser) {
+        throw new Error('User not found');
+      }
+
+      const { data: passwordValid, error: passwordError } = await supabase
+        .rpc('verify_password', {
+          password: emailPassword,
+          hash: currentUser.password_hash
+        });
+
+      if (passwordError || !passwordValid) {
         throw new Error('Current password is incorrect');
       }
 
@@ -40,7 +60,7 @@ const AdminProfileSettings = () => {
       const { error } = await supabase
         .from('admin_users')
         .update({ email: newEmail })
-        .eq('id', user?.id);
+        .eq('id', user.id);
 
       if (error) {
         throw new Error('Failed to update email');
@@ -72,8 +92,28 @@ const AdminProfileSettings = () => {
     setLoading(true);
 
     try {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
       // Verify current password
-      if (currentPassword !== 'admin123') {
+      const { data: currentUser } = await supabase
+        .from('admin_users')
+        .select('password_hash')
+        .eq('id', user.id)
+        .single();
+
+      if (!currentUser) {
+        throw new Error('User not found');
+      }
+
+      const { data: passwordValid, error: passwordError } = await supabase
+        .rpc('verify_password', {
+          password: currentPassword,
+          hash: currentUser.password_hash
+        });
+
+      if (passwordError || !passwordValid) {
         throw new Error('Current password is incorrect');
       }
 
@@ -83,15 +123,23 @@ const AdminProfileSettings = () => {
       }
 
       // Validate new password
-      if (newPassword.length < 6) {
-        throw new Error('New password must be at least 6 characters long');
+      if (newPassword.length < 8) {
+        throw new Error('New password must be at least 8 characters long');
       }
 
-      // Update password in database (in production, this should be hashed)
+      // Hash new password using database function
+      const { data: hashedPassword, error: hashError } = await supabase
+        .rpc('hash_password', { password: newPassword });
+
+      if (hashError || !hashedPassword) {
+        throw new Error('Failed to process password');
+      }
+
+      // Update password in database
       const { error } = await supabase
         .from('admin_users')
-        .update({ password_hash: newPassword })
-        .eq('id', user?.id);
+        .update({ password_hash: hashedPassword })
+        .eq('id', user.id);
 
       if (error) {
         throw new Error('Failed to update password');
@@ -222,7 +270,7 @@ const AdminProfileSettings = () => {
               <DialogHeader>
                 <DialogTitle>Change Password</DialogTitle>
                 <DialogDescription>
-                  Enter your current password and choose a new password.
+                  Enter your current password and choose a new password (minimum 8 characters).
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handlePasswordChange} className="space-y-4">
@@ -244,6 +292,8 @@ const AdminProfileSettings = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
+                    minLength={8}
+                    placeholder="Minimum 8 characters"
                   />
                 </div>
                 <div>
@@ -254,6 +304,7 @@ const AdminProfileSettings = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
+                    minLength={8}
                   />
                 </div>
                 <div className="flex gap-2">
