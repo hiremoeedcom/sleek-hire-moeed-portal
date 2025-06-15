@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +22,8 @@ const LoginForm = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('Login attempt for email:', email);
     
     // Input validation
     if (!validateEmail(email)) {
@@ -57,7 +58,9 @@ const LoginForm = () => {
     setLoading(true);
 
     try {
+      console.log('Attempting login...');
       const result = await signIn(email, password);
+      console.log('Login result:', result);
       
       if (result.success) {
         toast({
@@ -67,10 +70,11 @@ const LoginForm = () => {
         setAttemptCount(0);
         // The useAuth hook will handle the redirect
       } else {
+        console.error('Login failed:', result.error);
         setAttemptCount(prev => prev + 1);
         toast({
           title: "Login Failed",
-          description: result.error || "Invalid credentials",
+          description: result.error || "Invalid credentials. Please check your email and password.",
           variant: "destructive",
         });
       }
@@ -79,7 +83,7 @@ const LoginForm = () => {
       setAttemptCount(prev => prev + 1);
       toast({
         title: "Login Error",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred during login",
         variant: "destructive",
       });
     } finally {
@@ -214,7 +218,7 @@ const LoginForm = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@example.com"
+              placeholder="beingabdulmoeed@gmail.com"
               required
               disabled={loading}
               maxLength={254}

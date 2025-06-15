@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
@@ -25,12 +24,16 @@ export const useAuth = () => {
       const token = localStorage.getItem('admin_token');
       const userStr = localStorage.getItem('admin_user');
       
+      console.log('Checking auth status, token exists:', !!token, 'user exists:', !!userStr);
+      
       if (!token || !userStr) {
+        console.log('No token or user data found');
         setLoading(false);
         return;
       }
 
       const userData = JSON.parse(userStr);
+      console.log('Parsed user data:', userData);
 
       // Verify token is still valid by checking user exists and is active
       const { data, error } = await supabase
@@ -39,6 +42,8 @@ export const useAuth = () => {
         .eq('id', userData.id)
         .eq('is_active', true)
         .maybeSingle();
+
+      console.log('Token validation result:', { data, error });
 
       if (error || !data) {
         logger.error('Token validation failed:', error);
@@ -57,6 +62,8 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Starting sign in process for:', email);
+      
       // First, get the user data
       const { data, error } = await supabase
         .from('admin_users')
@@ -65,10 +72,15 @@ export const useAuth = () => {
         .eq('is_active', true)
         .maybeSingle();
 
+      console.log('User lookup result:', { data: data ? { ...data, password_hash: '[HIDDEN]' } : null, error });
+
       if (error || !data) {
-        throw new Error('Invalid credentials');
+        console.error('User not found or database error:', error);
+        return { success: false, error: 'Invalid credentials' };
       }
 
+      console.log('Attempting password verification...');
+      
       // Verify password using the database function
       const { data: passwordValid, error: passwordError } = await supabase
         .rpc('verify_password', {
@@ -76,9 +88,19 @@ export const useAuth = () => {
           hash: data.password_hash
         });
 
-      if (passwordError || !passwordValid) {
-        throw new Error('Invalid credentials');
+      console.log('Password verification result:', { passwordValid, passwordError });
+
+      if (passwordError) {
+        console.error('Password verification error:', passwordError);
+        return { success: false, error: 'Authentication failed' };
       }
+
+      if (!passwordValid) {
+        console.log('Password verification failed');
+        return { success: false, error: 'Invalid credentials' };
+      }
+
+      console.log('Password verified successfully, updating last login...');
 
       // Update last login
       await supabase
@@ -114,6 +136,7 @@ export const useAuth = () => {
       setIsAdmin(true);
       
       logger.info('Admin login successful', { email });
+      console.log('Login successful, setting user state');
       
       // Auto-refresh page after successful login
       setTimeout(() => {
@@ -122,6 +145,7 @@ export const useAuth = () => {
       
       return { success: true };
     } catch (error) {
+      console.error('Sign in error:', error);
       logger.error('Login failed:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Login failed' };
     }
